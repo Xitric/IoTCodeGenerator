@@ -1,0 +1,9 @@
+grammar org.iot.codegenerator.CodeGenerator with org.eclipse.xtext.common.Terminals
+
+generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
