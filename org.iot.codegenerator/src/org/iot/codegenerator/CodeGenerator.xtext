@@ -39,7 +39,65 @@ Sampler:
 ;
 
 Data:
-	'data'
+	'data' entities+=DataID (',' entities+=DataID)* BEGIN
+		input = (I2C | PIN) 
+		outputs += OUT+
+	END
+;
+
+DataID:
+	name=ID
+;
+
+I2C:
+	'i2c' '(' address=HEX ')' 'as' name=ID vars=VARS 
+;
+
+PIN:
+	'pin' '('ids+=INT (',' ids+=INT)* ')' 'as' name=ID vars=VARS
+;
+
+VARS:
+	'(' ids+=VarID (',' ids+=VarID)
+;
+
+VarID:
+	name=ID
+;
+
+OUT:
+	'out' channel=[Channel] dataId=[DataID] (source=[I2C] | source=[PIN]) pipeline=Pipeline
+;
+
+Pipeline:
+	tuplePipelines += TuplePipeline* (windowPipeline=WindowPipeline executePipeline=ExecutePipeline)?
+;
+
+TuplePipeline:
+	'.' ({Filter} 'filter' | {Map} 'map' | {Abs} 'abs') '['Exp']'
+;
+
+
+WindowPipeline:
+	'.byWindow['INT']'
+;
+
+ExecutePipeline:
+	'.'(
+    {Reduce} 'reduce' |
+    {Mean} 'mean' |
+    {Median} 'median' |
+    {Mode} 'mode' |
+    {Var} 'var' |
+    {StDev} 'stdev' |
+    {Min} 'min' |
+    {Max} 'max' |
+    {Count} 'count')
+;
+
+
+Exp:
+	'.'
 ;
 
 Fog:
