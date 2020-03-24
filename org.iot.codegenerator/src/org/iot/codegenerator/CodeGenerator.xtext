@@ -49,6 +49,10 @@ DataID:
 	name=ID
 ;
 
+Source:
+	I2C|PIN
+;
+
 I2C:
 	'i2c' '(' address=HEX ')' 'as' name=ID vars=VARS 
 ;
@@ -58,7 +62,7 @@ PIN:
 ;
 
 VARS:
-	'(' ids+=VarID (',' ids+=VarID)
+	'(' ids+=VarID (',' ids+=VarID)* ')'
 ;
 
 VarID:
@@ -66,24 +70,24 @@ VarID:
 ;
 
 OUT:
-	'out' channel=[Channel] dataId=[DataID] (source=[I2C] | source=[PIN]) pipeline=Pipeline
+	'out' channel=[Channel] dataId=[DataID] source=[Source] pipeline=Pipeline
 ;
 
 Pipeline:
-	tuplePipelines += TuplePipeline* (windowPipeline=WindowPipeline executePipeline=ExecutePipeline)?
+	'.' (TuplePipeline | WindowPipeline) (next=Pipeline)?
+	
 ;
 
 TuplePipeline:
-	'.' ({Filter} 'filter' | {Map} 'map' | {Abs} 'abs') '['Exp']'
+	({Filter} 'filter' | {Map} 'map' | {Abs} 'abs') '['expression=Expression']'
 ;
 
 
 WindowPipeline:
-	'.byWindow['INT']'
+	'byWindow['width=INT']' '.' executePipeline=ExecutePipeline
 ;
 
 ExecutePipeline:
-	'.'(
     {Reduce} 'reduce' |
     {Mean} 'mean' |
     {Median} 'median' |
@@ -92,21 +96,93 @@ ExecutePipeline:
     {StDev} 'stdev' |
     {Min} 'min' |
     {Max} 'max' |
-    {Count} 'count')
+    {Count} 'count'
+;
+
+Expression:
+	Or
 ;
 
 
-Exp:
-	'.'
+Or returns Expression:
+	And ({Or.left=current} '||' right=Or)?
+;
+
+And returns Expression:
+	Equality ({And.left=current} '&&' right=And)?
+;
+
+Equality returns Expression:
+	Comparison ({Equal.left=current} '==' right=Comparison | {Unequal.left = current} '!=' right=Comparison)*
+;
+
+Comparison returns Expression:
+	SubAdd ({LessThan.left=current} '<' right=SubAdd | {LessThanEqual.left=current} '<=' right=SubAdd | {GreaterThan.left=current} '>' right=SubAdd | {GreaterThanEqual.left=current} '>=' right=SubAdd)*
+;
+
+
+Not returns Expression:
+	{Not} '!' value=Primary | Primary
+;
+
+
+SubAdd returns Expression:
+	MulDiv ({Plus.left=current} '+' right=MulDiv | {Minus.left=current} '-' right=MulDiv)*
+;
+
+Primary returns Expression:
+	'('Expression')' | NumberLiteral | varid=[VarID] | BooleanLiteral
+;
+
+NumberLiteral:
+	value=NUMBER
+;
+
+BooleanLiteral:
+	value=BOOLEAN
+;
+
+
+MulDiv returns Expression:
+	Negation ({Mul.left=current} '*' right=Negation | {Div.left=current} '/' right=Negation)*
+;
+
+Negation returns Expression:
+    {Negation} '-' value=Exponent | Exponent
+;
+
+// Exponentiation is right-associative!
+// That is why the rule refers to itself (or its parent) on the right of the operator
+Exponent returns Expression:
+    Not ({Exponent.base=current} '**' power=Negation)?
 ;
 
 Fog:
-	'fog'
+	'fog' BEGIN
+		transformations+=Transformation+ 
+	END
 ;
 
 Cloud:
-	'cloud'
+	'cloud' BEGIN
+		transformations+=Transformation+ 
+	END
 ;
+
+Transformation:
+	'transformation' entities+=DataID (',' entities+=DataID)* BEGIN
+	input=TransformationIn outputs+=OutBody+
+	END
+;
+
+TransformationIn:
+	'in' entities=DataID 'as' name=ID vars=VARS
+;
+
+OutBody: 
+	'out' entities=[DataID] source=[TransformationIn] pipeline=Pipeline
+;
+
 
 terminal BEGIN: 'synthetic:BEGIN';
 terminal END: 'synthetic:END';
@@ -124,6 +200,11 @@ terminal DBL returns ecore::EDouble:
 terminal SCI returns ecore::EDouble:
 	(INT | DBL) ('e' | 'E') '-'? INT
 ;
+
+terminal BOOLEAN returns ecore::EBoolean:
+	'true' | 'false'
+;
+
 NUMBER hidden():
 	INT | HEX | DBL | SCI
 ;
