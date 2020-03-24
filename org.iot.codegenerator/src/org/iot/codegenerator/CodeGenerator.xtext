@@ -4,6 +4,9 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
 
+// We are aware that this is questionable, but we will use a validator to
+// ensure that board, fog, and cloud are not overwritten. This grammar is loose
+// and allows for specifying things in any order
 DeviceConf:
 	(channels+=Channel | board=Board | fog=Fog | cloud=Cloud)*
 ;
@@ -40,8 +43,8 @@ Sampler:
 
 Data:
 	'data' entities+=DataID (',' entities+=DataID)* BEGIN
-		input = (I2C | PIN) 
-		outputs += OUT+
+		input = (I2C | Pin) 
+		outputs += DataOut+
 	END
 ;
 
@@ -50,18 +53,18 @@ DataID:
 ;
 
 Source:
-	I2C|PIN
+	I2C|Pin
 ;
 
 I2C:
-	'i2c' '(' address=HEX ')' 'as' name=ID vars=VARS 
+	'i2c' '(' address=HEX ')' 'as' name=ID vars=Vars 
 ;
 
-PIN:
-	'pin' '('ids+=INT (',' ids+=INT)* ')' 'as' name=ID vars=VARS
+Pin:
+	'pin' '('ids+=INT (',' ids+=INT)* ')' 'as' name=ID vars=Vars
 ;
 
-VARS:
+Vars:
 	'(' ids+=VarID (',' ids+=VarID)* ')'
 ;
 
@@ -69,19 +72,17 @@ VarID:
 	name=ID
 ;
 
-OUT:
+DataOut:
 	'out' channel=[Channel] dataId=[DataID] source=[Source] pipeline=Pipeline
 ;
 
 Pipeline:
 	'.' (TuplePipeline | WindowPipeline) (next=Pipeline)?
-	
 ;
 
 TuplePipeline:
 	({Filter} 'filter' | {Map} 'map' | {Abs} 'abs') '['expression=Expression']'
 ;
-
 
 WindowPipeline:
 	'byWindow['width=INT']' '.' executePipeline=ExecutePipeline
@@ -99,11 +100,14 @@ ExecutePipeline:
     {Count} 'count'
 ;
 
+// The expression rules are loose allowing for meaningless expressions to be
+// formed. Well-typedness will be ensured using validators
 Expression:
 	Or
 ;
 
-
+// Implemented in a right-associative way just as an example - associativity
+// does not matter for && and ||
 Or returns Expression:
 	And ({Or.left=current} '||' right=Or)?
 ;
@@ -120,28 +124,9 @@ Comparison returns Expression:
 	SubAdd ({LessThan.left=current} '<' right=SubAdd | {LessThanEqual.left=current} '<=' right=SubAdd | {GreaterThan.left=current} '>' right=SubAdd | {GreaterThanEqual.left=current} '>=' right=SubAdd)*
 ;
 
-
-Not returns Expression:
-	{Not} '!' value=Primary | Primary
-;
-
-
 SubAdd returns Expression:
 	MulDiv ({Plus.left=current} '+' right=MulDiv | {Minus.left=current} '-' right=MulDiv)*
 ;
-
-Primary returns Expression:
-	'('Expression')' | NumberLiteral | varid=[VarID] | BooleanLiteral
-;
-
-NumberLiteral:
-	value=NUMBER
-;
-
-BooleanLiteral:
-	value=BOOLEAN
-;
-
 
 MulDiv returns Expression:
 	Negation ({Mul.left=current} '*' right=Negation | {Div.left=current} '/' right=Negation)*
@@ -155,6 +140,22 @@ Negation returns Expression:
 // That is why the rule refers to itself (or its parent) on the right of the operator
 Exponent returns Expression:
     Not ({Exponent.base=current} '**' power=Negation)?
+;
+
+Not returns Expression:
+	{Not} '!' value=Primary | Primary
+;
+
+Primary returns Expression:
+	'('Expression')' | NumberLiteral | BooleanLiteral | varid=[VarID]
+;
+
+NumberLiteral:
+	value=NUMBER
+;
+
+BooleanLiteral:
+	value=BOOLEAN
 ;
 
 Fog:
@@ -171,18 +172,18 @@ Cloud:
 
 Transformation:
 	'transformation' entities+=DataID (',' entities+=DataID)* BEGIN
-	input=TransformationIn outputs+=OutBody+
+		input=TransformationIn
+		outputs+=TransformationOut+
 	END
 ;
 
 TransformationIn:
-	'in' entities=DataID 'as' name=ID vars=VARS
+	'in' entities=DataID 'as' name=ID vars=Vars
 ;
 
-OutBody: 
+TransformationOut: 
 	'out' entities=[DataID] source=[TransformationIn] pipeline=Pipeline
 ;
-
 
 terminal BEGIN: 'synthetic:BEGIN';
 terminal END: 'synthetic:END';
@@ -200,11 +201,9 @@ terminal DBL returns ecore::EDouble:
 terminal SCI returns ecore::EDouble:
 	(INT | DBL) ('e' | 'E') '-'? INT
 ;
-
 terminal BOOLEAN returns ecore::EBoolean:
 	'true' | 'false'
 ;
-
 NUMBER hidden():
 	INT | HEX | DBL | SCI
 ;
