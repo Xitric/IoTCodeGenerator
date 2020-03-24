@@ -26,5 +26,6 @@ Export-Package: org.iot.codegenerator.serializer,
  org.iot.codegenerator.validation,
  org.iot.codegenerator.codeGenerator,
  org.iot.codegenerator.generator,
- org.iot.codegenerator.parser.antlr
+ org.iot.codegenerator.parser.antlr,
+ org.iot.codegenerator.parser.antlr.lexer
 Import-Package: org.apache.log4j

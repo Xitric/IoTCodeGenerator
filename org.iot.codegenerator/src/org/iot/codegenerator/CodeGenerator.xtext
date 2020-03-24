@@ -2,8 +2,59 @@ grammar org.iot.codegenerator.CodeGenerator with org.eclipse.xtext.common.Termin
 
 generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
 
-Model:
-	greetings+=Greeting*;
-	
-Greeting:
-	'Hello' name=ID '!';
+DeviceConf:
+	(channels+=Channel | board=Board | fog=Fog | cloud=Cloud)*
+;
+
+Channel:
+	'channel' name=ID
+;
+
+Board:
+	'board' name=ID BEGIN
+		body=BoardBody
+	END
+;
+
+BoardBody:
+	BoardIn sensors+=(ExtSensor | OnbSensor)+
+;
+
+BoardIn:
+	'in' input=[Channel]
+;
+
+ExtSensor returns Sensor:
+	{ExtSensor} 'extsensor' name=ID BEGIN
+		body = SensorBody
+	END
+;
+
+OnbSensor returns Sensor:
+	{OnbSensor} 'onbsensor' name=ID BEGIN
+		body = SensorBody
+	END
+;
+
+SensorBody:
+	sampler=Sampler datas+=Data+
+;
+
+Sampler:
+	'sample' ({FrequencySampler} 'frequency' delay=INT | {SignalSampler} 'signal')
+;
+
+Data:
+	'data'
+;
+
+Fog:
+	'fog'
+;
+
+Cloud:
+	'cloud'
+;
+
+terminal BEGIN: 'synthetic:BEGIN';
+terminal END: 'synthetic:END';
