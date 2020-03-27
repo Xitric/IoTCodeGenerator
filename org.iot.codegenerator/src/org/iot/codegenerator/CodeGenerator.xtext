@@ -103,7 +103,12 @@ ExecutePipeline:
 // The expression rules are loose allowing for meaningless expressions to be
 // formed. Well-typedness will be ensured using validators
 Expression:
-	Or
+	Conditional
+;
+
+// 4 == 4 ? yes : no, is per definition right associative
+Conditional returns Expression:
+	Or ({Conditional.condition=current} '?' correct=Conditional ':' incorrect=Conditional)?
 ;
 
 // Implemented in a right-associative way just as an example - associativity
@@ -149,6 +154,8 @@ Not returns Expression:
 Primary returns Expression:
 	'('Expression')' | NumberLiteral | BooleanLiteral | varid=[VarID]
 ;
+
+
 
 NumberLiteral:
 	value=NUMBER
