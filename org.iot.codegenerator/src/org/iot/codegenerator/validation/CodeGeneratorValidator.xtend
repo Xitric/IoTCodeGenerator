@@ -3,10 +3,15 @@
  */
 package org.iot.codegenerator.validation
 
+import com.google.inject.Inject
+import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
-import org.iot.codegenerator.codeGenerator.DeviceConf
-import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.And
+import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
+import org.iot.codegenerator.codeGenerator.Conditional
+import org.iot.codegenerator.codeGenerator.DeviceConf
+import org.iot.codegenerator.codeGenerator.Or
+import org.iot.codegenerator.typing.TypeChecker
 
 /**
  * This class contains custom validation rules. 
@@ -14,7 +19,10 @@ import org.iot.codegenerator.codeGenerator.And
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
-
+	
+	@Inject
+	extension TypeChecker 
+	
 	@Check
 	def checkDeviceConfiguration(DeviceConf configuration) {
 		val boards = configuration.board
@@ -45,8 +53,32 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}		
 	}
 	
-	@Check
-	def checkExpressionLiteral(And and){
+	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error){
+		if (expected != actual) {
+			error('''expected «expected» got «actual»''', error)
+		}
 	}
+	
+	@Check
+	def checkExpression(Conditional conditional){
+		conditional.condition.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.CONDITIONAL__CONDITION)
+		conditional.incorrect.type.validateTypes(conditional.correct.type, CodeGeneratorPackage.Literals.CONDITIONAL__INCORRECT)
+	}
+	
+	@Check
+	def checkExpression(Or or){
+		or.left.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.OR__LEFT)
+		or.right.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.OR__RIGHT)
+	}
+	
+	@Check
+	def checkExpression(And and){
+		and.left.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.AND__LEFT)
+		and.right.type.validateTypes(TypeChecker.Type.BOOLEAN, CodeGeneratorPackage.Literals.AND__RIGHT)
+	}
+	
+	
+	
+	
 	
 }
