@@ -46,47 +46,73 @@ class TypeChecker {
 	}
 
 	def dispatch Type type(Conditional conditional) {
-		conditional.correct.type
+		val correctType = conditional.correct.type
+		val incorrectType = conditional.incorrect.type
+		val numberType = evaluateNumeralTypes(correctType, incorrectType)
+		
+		if (numberType == Type.INVALID) {
+			if (correctType == incorrectType) {
+				correctType
+			} else {
+				Type.INVALID
+			}
+		} else {
+			numberType
+		}
+	}
 
+	def isNumberType(Type type) {
+		return type == Type.INT || type == Type.DOUBLE
 	}
 
 	def evaluateNumeralTypes(Type type1, Type type2) {
-		if (type1 == Type.INT && type2 == Type.INT) {
-			return Type.INT
-		} else if (type1 == Type.DOUBLE && type2 == Type.DOUBLE) {
-			return Type.DOUBLE
-		} else if (type1 == Type.STRING && type2 == Type.STRING) {
-			return Type.STRING
-		} else if ((type1 == Type.STRING && type2 != type1) || (type2 == Type.STRING && type2 != type1)) {
-			return Type.INVALID
+		if (! (type1.isNumberType && type2.isNumberType)) {
+			Type.INVALID
 		} else if (type1 == Type.DOUBLE || type2 == Type.DOUBLE) {
-			return Type.DOUBLE
-		} 
-		Type.INVALID
+			Type.DOUBLE
+		} else {
+			Type.INT
+		}
 	}
 
 	def dispatch Type type(Plus plus) {
+		if (plus.left.type == Type.STRING || plus.right.type == Type.STRING) {
+			Type.STRING
+		} else {
+			evaluateNumeralTypes(plus.left.type, plus.right.type)			
+		}
 	}
 
 	def dispatch Type type(Minus minus) {
+		evaluateNumeralTypes(minus.left.type, minus.right.type)
 	}
 
 	def dispatch Type type(Mul multiply) {
+		evaluateNumeralTypes(multiply.left.type, multiply.right.type)
 	}
 
 	def dispatch Type type(Div division) {
+		evaluateNumeralTypes(division.left.type, division.right.type)
 	}
 
 	def dispatch Type type(Negation negation) {
+		if(! negation.value.type.isNumberType) {
+			Type.INVALID
+		} else {
+			negation.value.type
+		}
 	}
 
 	def dispatch Type type(Exponent exponent) {
+		if(evaluateNumeralTypes(exponent.base.type, exponent.power.type) == Type.INVALID) {
+			Type.INVALID
+		} else {
+			Type.DOUBLE
+		}
 	}
 
 	def dispatch Type type(Reference reference) {
+		//TODO: Requires a lot of work of inferring types from pipelines, etc.
+		Type.INT
 	}
-
-	def dispatch Type type(Not not) {
-	}
-
 }
