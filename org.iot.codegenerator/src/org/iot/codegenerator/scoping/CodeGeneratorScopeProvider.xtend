@@ -3,6 +3,16 @@
  */
 package org.iot.codegenerator.scoping
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
+import org.eclipse.xtext.scoping.IScope
+import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.Transformation
+import org.iot.codegenerator.codeGenerator.Source
+import org.iot.codegenerator.codeGenerator.Vars
+import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.eclipse.xtext.scoping.Scopes
 
 /**
  * This class contains custom scoping description.
@@ -11,5 +21,29 @@ package org.iot.codegenerator.scoping
  * on how and when to use it.
  */
 class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
-
+	
+	override getScope(EObject context, EReference reference){
+		if (reference == CodeGeneratorPackage.eINSTANCE.reference_Varid){
+			return context.scope
+		}
+		super.getScope(context, reference)
+	}
+	
+	def private IScope getScope(EObject context){
+		val dataContainer = context.eContainer.getContainerOfType(Data)
+		val tranContainer = context.eContainer.getContainerOfType(Transformation)
+		val vars = dataContainer.getVariables(tranContainer)
+		Scopes.scopeFor(vars.ids)
+	}
+	
+	// var ids reside in both transformations and data inputs
+	// these are added to the same scope
+	def Vars getVariables(Data data, Transformation trans){
+		if (data !== null){
+			return data.input.vars
+		} else if (trans !== null){
+			return trans.input.vars
+		}
+	}
+	
 }

@@ -8,10 +8,10 @@ import org.iot.codegenerator.codeGenerator.Expression
 import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
-import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.NumberLiteral
 import org.iot.codegenerator.codeGenerator.Plus
 import org.iot.codegenerator.codeGenerator.Reference
+import org.iot.codegenerator.codeGenerator.StringLiteral
 
 class TypeChecker {
 
@@ -35,6 +35,10 @@ class TypeChecker {
 			default:
 				Type.INT
 		}
+	}
+	
+	def dispatch Type type(StringLiteral str){
+		Type.STRING
 	}
 
 	def dispatch Type type(BooleanLiteral bool) {
