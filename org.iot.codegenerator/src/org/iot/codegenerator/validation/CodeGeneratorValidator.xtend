@@ -55,7 +55,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error){
 		if (expected != actual) {
-			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 	
