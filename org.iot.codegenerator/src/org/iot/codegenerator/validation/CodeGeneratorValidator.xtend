@@ -27,8 +27,6 @@ import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.Pin
-import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.ExtSensor
 import org.iot.codegenerator.codeGenerator.I2C
 import org.iot.codegenerator.codeGenerator.OnbSensor
@@ -40,6 +38,9 @@ import org.iot.codegenerator.codeGenerator.Data
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
+
+	public static val INCORRECT_INPUT_TYPE_PIN = "org.iot.codegenerator.IncorrectInputTypePin"
+	public static val INCORRECT_INPUT_TYPE_I2C = "org.iot.codegenerator.IncorrectInputTypeI2c"
 
 	@Inject
 	extension TypeChecker
@@ -78,9 +79,9 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateSource(Data data) {
 		switch (data.eContainer) {
 			ExtSensor case data.input instanceof I2C:
-				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.DATA__INPUT)
+				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.DATA__INPUT, INCORRECT_INPUT_TYPE_I2C)
 			OnbSensor case data.input instanceof Pin:
-				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.DATA__INPUT)
+				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.DATA__INPUT, INCORRECT_INPUT_TYPE_PIN)
 		}
 
 	}

@@ -3,11 +3,17 @@
  */
 package org.iot.codegenerator.ui.quickfix
 
+import java.util.regex.Pattern
+import org.eclipse.xtext.ui.editor.model.IXtextDocument
 import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
+import org.eclipse.xtext.ui.editor.quickfix.Fix
+import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
+import org.eclipse.xtext.validation.Issue
+import org.iot.codegenerator.validation.CodeGeneratorValidator
 
 /**
  * Custom quickfixes.
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/310_eclipse_support.html#quick-fixes
  */
 class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
@@ -21,4 +27,42 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 //			xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
 //		]
 //	}
+	@Fix(CodeGeneratorValidator.INCORRECT_INPUT_TYPE_PIN)
+	def void changeInputTypeToI2c(Issue issue, IssueResolutionAcceptor acceptor) {
+		acceptor.accept(issue, "Change input type to i2c",
+			"Onboard sensors communicate using the I2C bus, so you should change input type from pin to i2c",
+			null, [ context |
+				context.xtextDocument.replaceInputType(issue, "i2c")
+				context.xtextDocument.positionCategories
+			])
+	}
+
+	@Fix(CodeGeneratorValidator.INCORRECT_INPUT_TYPE_I2C)
+	def void changeInputTypeToPin(Issue issue, IssueResolutionAcceptor acceptor) {
+		acceptor.accept(issue, "Change input type to pin",
+		"External sensors communicate using IO pins, so you should change input type from i2c to pin", null, [ context |
+			context.xtextDocument.replaceInputType(issue, "pin")
+		])
+	}
+
+	/**
+	 * Replaces an occurence of an incorrect input type such as
+	 * {@code i2c (0x23) as x(a,b)} with the correct alternative such as
+	 * {@code pin () as x(a,b)}.
+	 */
+	private def void replaceInputType(IXtextDocument document, Issue issue, String inputType) {
+		val issueText = document.get(issue.offset, issue.length)
+		val pattern = Pattern.compile("([\\w]+)\\(([\\w,]*)\\)")
+
+		val matcher = pattern.matcher(issueText)
+		if (matcher.find() && matcher.groupCount === 2) {
+			val input = matcher.group(1)
+			val ids = matcher.group(2).split(",")
+
+			document.replace(issue.offset,
+				issue.length, '''«inputType» () as «input»(«FOR id : ids SEPARATOR ","»«id»«ENDFOR»)''')
+		} else {
+			document.replace(issue.offset, issue.length, '''«inputType» () as x()''')
+		}
+	}
 }
