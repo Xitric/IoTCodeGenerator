@@ -25,6 +25,14 @@ import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Not
+import org.iot.codegenerator.codeGenerator.Filter
+import org.iot.codegenerator.codeGenerator.Pin
+import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.Sensor
+import org.iot.codegenerator.codeGenerator.ExtSensor
+import org.iot.codegenerator.codeGenerator.I2C
+import org.iot.codegenerator.codeGenerator.OnbSensor
+import org.iot.codegenerator.codeGenerator.Data
 
 /**
  * This class contains custom validation rules. 
@@ -64,6 +72,23 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''there must at maximum be 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
 			return
 		}
+	}
+
+	@Check
+	def validateSource(Data data) {
+		switch (data.eContainer) {
+			ExtSensor case data.input instanceof I2C:
+				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.DATA__INPUT)
+			OnbSensor case data.input instanceof Pin:
+				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.DATA__INPUT)
+		}
+
+	}
+
+	@Check
+	def validateFilterExpression(Filter filter) {
+		filter.expression.type.validateTypes(TypeChecker.Type.BOOLEAN,
+			CodeGeneratorPackage.Literals.TUPLE_PIPELINE__EXPRESSION)
 	}
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
