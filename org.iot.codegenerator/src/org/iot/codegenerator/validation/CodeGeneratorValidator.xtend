@@ -79,9 +79,9 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateSource(Data data) {
 		switch (data.eContainer) {
 			ExtSensor case data.input instanceof I2C:
-				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.DATA__INPUT, INCORRECT_INPUT_TYPE_I2C)
+				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
 			OnbSensor case data.input instanceof Pin:
-				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.DATA__INPUT, INCORRECT_INPUT_TYPE_PIN)
+				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
 		}
 
 	}
@@ -94,13 +94,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got Â«typeÂ»''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 

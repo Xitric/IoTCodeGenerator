@@ -187,6 +187,10 @@ Cloud:
 	END
 ;
 
+OutputDefinition:
+	Transformation | Data
+;
+
 Transformation:
 	'transformation' entities+=DataID (',' entities+=DataID)* BEGIN
 		input=TransformationIn
@@ -195,7 +199,7 @@ Transformation:
 ;
 
 TransformationIn returns Source:
-	{TransformationIn} 'in' entities=DataID 'as' name=ID vars=Vars
+	{TransformationIn} 'in' entities=[DataID] 'as' name=ID vars=Vars
 ;
 
 TransformationOut: 
