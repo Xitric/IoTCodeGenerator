@@ -77,11 +77,15 @@ DataOut:
 ;
 
 Pipeline:
-	'.' (TuplePipeline | WindowPipeline) (next=Pipeline)?
+	'.' (TuplePipeline | MapPipeline | WindowPipeline) (next=Pipeline)?
 ;
 
 TuplePipeline:
-	({Filter} 'filter' | {Map} 'map' | {Abs} 'abs') '['expression=Expression']'
+	({Filter} 'filter' | {Abs} 'abs') '['expression=Expression']'
+;
+
+MapPipeline:
+	{Map} 'map' '['expression=Expression '->' output=VarID ']'
 ;
 
 WindowPipeline:

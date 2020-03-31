@@ -3,16 +3,19 @@
  */
 package org.iot.codegenerator.scoping
 
+import java.util.Collections
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
-import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.eclipse.xtext.scoping.IScope
-import org.iot.codegenerator.codeGenerator.Data
-import org.iot.codegenerator.codeGenerator.Transformation
-import org.iot.codegenerator.codeGenerator.Source
-import org.iot.codegenerator.codeGenerator.Vars
-import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.eclipse.xtext.scoping.Scopes
+import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
+import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.Transformation
+import org.iot.codegenerator.codeGenerator.Vars
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.Pipeline
 
 /**
  * This class contains custom scoping description.
@@ -30,10 +33,15 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	}
 	
 	def private IScope getScope(EObject context){
-		val dataContainer = context.eContainer.getContainerOfType(Data)
-		val tranContainer = context.eContainer.getContainerOfType(Transformation)
-		val vars = dataContainer.getVariables(tranContainer)
-		Scopes.scopeFor(vars.ids)
+		val mapContainer = context.eContainer.getContainerOfType(Pipeline)?.eContainer()?.getContainerOfType(Map)
+		if (mapContainer !== null) {
+			Scopes.scopeFor((Collections.singleton(mapContainer.output)))
+		} else {
+			val dataContainer = context.eContainer.getContainerOfType(Data)
+			val tranContainer = context.eContainer.getContainerOfType(Transformation)
+			val vars = dataContainer.getVariables(tranContainer)
+			Scopes.scopeFor(vars.ids)	
+		}
 	}
 	
 	// var ids reside in both transformations and data inputs
