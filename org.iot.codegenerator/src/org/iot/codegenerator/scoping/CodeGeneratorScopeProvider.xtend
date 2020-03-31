@@ -3,9 +3,7 @@
  */
 package org.iot.codegenerator.scoping
 
-import java.util.ArrayList
 import java.util.Collections
-import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScope
@@ -14,6 +12,7 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Cloud
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.DataID
 import org.iot.codegenerator.codeGenerator.Fog
 import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.OutputDefinition
@@ -67,31 +66,21 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 	}
 
 	def private IScope getTransInIdScope(EObject context) {
-		val List<OutputDefinition> outputDefinitions = new ArrayList();
-		val cloudContainer = context.eContainer.getContainerOfType(Cloud)
-		if (cloudContainer !== null) {
-			val boardContainer = cloudContainer.getSiblingsOfType(Board)
-			if (boardContainer !== null) {
-				outputDefinitions.addAll(
-					boardContainer.allContents.filter(OutputDefinition).toIterable)
+		var scope = context.eContainer.getContainerOfType(Cloud)?.getOutputDefinitionsFrom(Board, Fog)
+		if (scope === null) {
+			scope = context.eContainer.getContainerOfType(Fog)?.getOutputDefinitionsFrom(Board)
+			if (scope === null) {
+				return IScope.NULLSCOPE
 			}
-			val fogContainer = cloudContainer.getSiblingsOfType(Fog)
-			if (fogContainer !== null) {
-				outputDefinitions.addAll(
-					fogContainer.allContents.filter(OutputDefinition).toIterable)
-			}
-
-			return Scopes.scopeFor(outputDefinitions.flatMap[it.entities])
+			return Scopes.scopeFor(scope)
 		}
-		
-		val fogContainer = context.eContainer.getContainerOfType(Fog)
-		if(fogContainer !== null){
-			val boardContainer = fogContainer.getSiblingsOfType(Board)
-			if(boardContainer !== null){
-				return Scopes.scopeFor(boardContainer.allContents.filter(OutputDefinition).toIterable)
-			}
-		}
+		return Scopes.scopeFor(scope)
+	}
 
+	def private Iterable<DataID> getOutputDefinitionsFrom(EObject context, Class<? extends EObject>... types) {
+		types.flatMap [
+			context.getSiblingsOfType(it).allContents.filter(OutputDefinition).toIterable.flatMap[it.entities]
+		]
 	}
 
 	// var ids reside in both transformations and data inputs
