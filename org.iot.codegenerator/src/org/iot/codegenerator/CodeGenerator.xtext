@@ -8,7 +8,11 @@ generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
 // ensure that board, fog, and cloud are not overwritten. This grammar is loose
 // and allows for specifying things in any order
 DeviceConf:
-	(channels+=Channel | board+=Board | fog+=Fog | cloud+=Cloud)*
+	language=Language (channels+=Channel | board+=Board | fog+=Fog | cloud+=Cloud)*
+;
+
+Language:
+	'language' name=ID
 ;
 
 Channel:
