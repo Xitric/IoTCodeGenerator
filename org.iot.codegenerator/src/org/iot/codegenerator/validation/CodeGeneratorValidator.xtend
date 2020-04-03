@@ -31,6 +31,8 @@ import org.iot.codegenerator.codeGenerator.ExtSensor
 import org.iot.codegenerator.codeGenerator.I2C
 import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.Language
+import java.util.Arrays
 
 /**
  * This class contains custom validation rules. 
@@ -74,6 +76,14 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			return
 		}
 	}
+	
+	@Check
+	def validateLanguage(Language lang){
+		var approved = Arrays.asList("python", "cplusplus")
+		if (!approved.contains(lang.name)){
+			error('''no support for language Â«lang.nameÂ», only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
+		}
+	}
 
 	@Check
 	def validateSource(Data data) {
@@ -94,13 +104,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected «expected» got «actual»''', error)
+			error('''expected ï¿½expectedï¿½ got ï¿½actualï¿½''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got «type»''', error)
+			error('''expected number got ï¿½typeï¿½''', error)
 		}
 	}
 
