@@ -81,7 +81,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateLanguage(Language lang){
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)){
-			error('''no support for language Â«lang.nameÂ», only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
+			error('''no support for language «lang.name», only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
 		}
 	}
 
@@ -104,13 +104,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got Â«typeÂ»''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 

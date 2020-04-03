@@ -21,12 +21,8 @@ Channel:
 
 Board:
 	'board' name=ID BEGIN
-		BoardIn sensors+=(ExtSensor | OnbSensor)+
+		'in' input=[Channel] sensors+=(ExtSensor | OnbSensor)+
 	END
-;
-
-BoardIn:
-	'in' input=[Channel]
 ;
 
 ExtSensor returns Sensor:

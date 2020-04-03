@@ -3,9 +3,8 @@ import utime
 
 class Thermistor:  # Name from sensor ID
 
+    # Begin frequency
     def __init__(self):
-        super().__init__()
-        # Begin frequency
         # If sampling type is frequency, we run a loop in a thread specific to the sensor
         # Alternatively we can have a central timer dispatch thread
         # For all sensors that have a frequency technique, we must acquire their state locks in connection.py and join on them
