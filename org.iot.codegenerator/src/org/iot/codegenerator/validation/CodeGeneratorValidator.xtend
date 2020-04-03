@@ -32,6 +32,7 @@ import org.iot.codegenerator.codeGenerator.I2C
 import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Language
+import org.iot.codegenerator.codeGenerator.Source
 import java.util.Arrays
 
 /**
@@ -75,6 +76,15 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''there must at maximum be 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
 			return
 		}
+	}
+	
+	@Check
+	def validatePinsMatchesVars(Pin pin){
+		if (pin.ids.size() < pin.vars.ids.size()){
+			error('''exprects «pin.vars.ids.size()» pin inputs, got «pin.ids.size()»''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
+		} else if (pin.ids.size() > pin.vars.ids.size()){
+			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
+		}	
 	}
 	
 	@Check

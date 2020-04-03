@@ -60,9 +60,9 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 			val ids = matcher.group(2).split(",")
 
 			document.replace(issue.offset,
-				issue.length, '''«inputType» () as «input»(«FOR id : ids SEPARATOR ","»«id»«ENDFOR»)''')
+				issue.length, '''Â«inputTypeÂ» () as Â«inputÂ»(Â«FOR id : ids SEPARATOR ","Â»Â«idÂ»Â«ENDFORÂ») ''')
 		} else {
-			document.replace(issue.offset, issue.length, '''«inputType» () as x()''')
+			document.replace(issue.offset, issue.length, '''Â«inputTypeÂ» () as x()''')
 		}
 	}
 }
