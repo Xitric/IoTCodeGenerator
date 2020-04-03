@@ -48,7 +48,7 @@ Sampler:
 Data:
 	'data' entities+=DataID (',' entities+=DataID)* BEGIN
 		input = (I2C | Pin) 
-		outputs += DataOut+
+		outputs += OutPut+
 	END
 ;
 
@@ -61,7 +61,7 @@ Source:
 ;
 
 I2C:
-	'i2c' '(' address=HEX ')' 'as' name=ID vars=Vars 
+	'i2c' keyword=ID 'as' name=ID vars=Vars 
 ;
 
 Pin:
@@ -74,6 +74,14 @@ Vars:
 
 VarID:
 	name=ID
+;
+
+OutPut:
+	ScreenOut | DataOut
+;
+
+ScreenOut:
+	'out' 'oled' prints+=Expression
 ;
 
 DataOut:
@@ -217,9 +225,6 @@ terminal END: 'synthetic:END';
 terminal INT returns ecore::EInt:
 	'0' | ('1'..'9')('0'..'9')*
 ;
-terminal HEX:
-	'0x' ('0'..'9' | 'a'..'f' | 'A'..'F')+
-;
 terminal DBL returns ecore::EDouble:
 	INT? '.'('0'..'9')+
 ;
@@ -230,5 +235,5 @@ terminal BOOLEAN returns ecore::EBoolean:
 	'true' | 'false'
 ;
 NUMBER hidden():
-	INT | HEX | DBL | SCI
+	INT | DBL | SCI
 ;
