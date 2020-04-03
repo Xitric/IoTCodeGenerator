@@ -203,7 +203,7 @@ TransformationIn returns Source:
 ;
 
 TransformationOut: 
-	'out' entities=[DataID] source=[TransformationIn] pipeline=Pipeline
+	'out' entities=[DataID] source=[TransformationIn] pipeline=Pipeline?
 ;
 
 terminal BEGIN: 'synthetic:BEGIN';
