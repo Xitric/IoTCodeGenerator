@@ -7,6 +7,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import org.iot.codegenerator.codeGenerator.Channel
 
 /**
  * Generates code from your model files on save.
@@ -16,9 +17,15 @@ import org.eclipse.xtext.generator.IGeneratorContext
 class CodeGeneratorGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-
-		
-		
-		
+		fsa.generateFile("config.json", resource.allContents.toIterable.filter(Channel).compile)
 	}
+
+	def String compile(Iterable<Channel> channels){ 
+		val channelFormat = '": {\n        "type": "",\n        "lane": ""\n    }'
+		var compiled = '{\n    "wifi": {\n        "ssid": "",\n        "password": "",\n        "cloud": ""\n    },\n    "serial": {\n        "baud": "",\n        "databits": "",\n        "paritybits": "",\n        "stopbit": ""\n    },\n'
+		for (channel : channels) {
+		    compiled += '    "'+channel.name+channelFormat+',\n'
+		}
+		compiled.substring(0, compiled.length-2)+'\n}\n'
+	}	
 }
