@@ -24,6 +24,7 @@ class Pipeline:
                 interceptor.next = next
         else:
             raise IndexError("Illegal index " + i)
+        return self
     
     def handle(self, x):
         self.__head.handle(x)
