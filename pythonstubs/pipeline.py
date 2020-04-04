@@ -1,18 +1,18 @@
-from interceptor import Interceptor, InterceptorA, InterceptorB, InterceptorC, InterceptorD
+from interceptor import Interceptor
 
 class Pipeline:
 
     def __init__(self, root: Interceptor):
-        self.head = root
+        self.__head = root
         next = root
         while next is not None:
             next = next.next
-        self.tail = next
+        self.__tail = next
     
     def add(self, index: int, interceptor: Interceptor):
         i = 0
         previous = None
-        next = self.head
+        next = self.__head
         while i < index and next is not None:
             previous = next
             next = next.next
@@ -24,5 +24,6 @@ class Pipeline:
                 interceptor.next = next
         else:
             raise IndexError("Illegal index " + i)
-
-p = Pipeline(InterceptorA(InterceptorB(InterceptorC(InterceptorD(None)))))
+    
+    def handle(self, x):
+        self.__head.handle(x)
