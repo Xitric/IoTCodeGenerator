@@ -1,18 +1,24 @@
-from interceptor import Interceptor
+class Interceptor:
+
+    def __init__(self, next):
+        self.next = next
+
+    def handle(self, data):
+        pass
 
 class Pipeline:
 
     def __init__(self, root: Interceptor):
-        self.__head = root
-        next = root
-        while next is not None:
-            next = next.next
-        self.__tail = next
+        self.head = root
+        current = root
+        while current.next is not None:
+            current = current.next
+        self.tail = current
     
     def add(self, index: int, interceptor: Interceptor):
         i = 0
         previous = None
-        next = self.__head
+        next = self.head
         while i < index and next is not None:
             previous = next
             next = next.next
@@ -27,4 +33,4 @@ class Pipeline:
         return self
     
     def handle(self, x):
-        self.__head.handle(x)
+        self.head.handle(x)

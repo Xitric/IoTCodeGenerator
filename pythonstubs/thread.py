@@ -1,5 +1,8 @@
 import _thread
-import utime
+try:
+    import utime
+except ModuleNotFoundError:
+    import time as utime
 
 class ThreadException(Exception):
     pass
@@ -60,3 +63,6 @@ def join(threads: [Thread]):
 
 def stop_current():
     _thread.exit()
+
+def make_lock():
+    return _thread.allocate_lock()

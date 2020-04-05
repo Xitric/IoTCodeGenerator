@@ -1,8 +1,11 @@
 import thread
-import utime
 from collections import namedtuple
-from pipeline import Pipeline
-from interceptor import Interceptor
+from pipeline import Pipeline, Interceptor
+
+try:
+    import utime
+except ModuleNotFoundError:
+    import time as utime
 
 class Thermistor:  # Name from sensor ID
 

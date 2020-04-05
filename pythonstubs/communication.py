@@ -19,8 +19,7 @@ class Serial(Communication):
         pass
 
     def send(self, data: bytes):
-        data_str = data.decode("utf-8")
-        print(data_str)
+        print(data)
     
     def receive(self) -> bytes:
         data = sys.stdin.readline().replace("\r", "").replace("\n", "")
