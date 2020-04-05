@@ -47,10 +47,10 @@ class Thermistor:  # Name from sensor ID
             _vals = self.sensor.get_values()
             tup = namedtuple("x", "ax ay az t gx hy gz")
             x = tup(_vals["AcX"],_vals["AcY"],_vals["AcZ"],_vals["Tmp"],_vals["GyX"],_vals["GyY"],_vals["GyZ"])
-            
+
             for variable in self.variables:
-                for pipeline in variable:
-                    pipeline.root.handle(x)
+                for pipeline in self.variables[variable]:
+                    pipeline.handle(x)
         # End signal
     
     # Begin testing
