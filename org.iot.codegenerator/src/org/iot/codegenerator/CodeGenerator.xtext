@@ -32,7 +32,7 @@ Sensor:
 ;
 
 ExtSensor:
-	name=ID '('ids+=INT (',' ids+=INT)* ')'
+	name=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
@@ -51,8 +51,8 @@ Sampler:
 	'sample' ({FrequencySampler} 'frequency' delay=INT | {SignalSampler} 'signal')
 ;
 
-SensorData:
-	'data' name=ID BEGIN
+SensorData returns Data:
+	{SensorData} 'data' name=ID BEGIN
 		outputs += SensorDataOut+
 	END
 ;
@@ -186,13 +186,13 @@ Transformation:
 	END
 ;
 
-TransformationData:
-	'data' name=ID BEGIN
-		outputs += TransformationDataOut+ 	
+TransformationData returns Data:
+	{TransformationData} 'data' name=ID BEGIN
+		outputs += TransformationOut+ 	
 	END
 ;
 
-TransformationDataOut: 
+TransformationOut: 
 	'out' source=[Variables] pipeline=Pipeline?
 ;
 
