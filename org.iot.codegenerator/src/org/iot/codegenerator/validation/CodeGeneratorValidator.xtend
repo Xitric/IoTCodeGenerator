@@ -4,35 +4,35 @@
 package org.iot.codegenerator.validation
 
 import com.google.inject.Inject
+import java.util.Arrays
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.DeviceConf
-import org.iot.codegenerator.codeGenerator.Or
+import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Equal
-import org.iot.codegenerator.typing.TypeChecker
-import org.iot.codegenerator.codeGenerator.Unequal
-import org.iot.codegenerator.codeGenerator.LessThan
-import org.iot.codegenerator.codeGenerator.LessThanEqual
+import org.iot.codegenerator.codeGenerator.Exponent
+import org.iot.codegenerator.codeGenerator.ExtSensor
+import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.GreaterThan
 import org.iot.codegenerator.codeGenerator.GreaterThanEqual
-import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Language
+import org.iot.codegenerator.codeGenerator.LessThan
+import org.iot.codegenerator.codeGenerator.LessThanEqual
 import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
-import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Negation
-import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Not
-import org.iot.codegenerator.codeGenerator.Filter
-import org.iot.codegenerator.codeGenerator.Pin
-import org.iot.codegenerator.codeGenerator.ExtSensor
-import org.iot.codegenerator.codeGenerator.I2C
-import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.Data
-import org.iot.codegenerator.codeGenerator.Language
-import java.util.Arrays
+import org.iot.codegenerator.codeGenerator.Or
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Sensor
+import org.iot.codegenerator.codeGenerator.Unequal
+import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.typing.TypeChecker
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
 
 /**
  * This class contains custom validation rules. 
@@ -76,6 +76,21 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			return
 		}
 	}
+
+	@Check
+	def validatePinsMatchesVars(Variables variables){
+		val sensor = variables.getContainerOfType(Sensor)
+		switch(sensor) {
+			ExtSensor:
+				if (sensor.pins.size() < variables.ids.size()) {
+					error('''expected «sensor.pins.size()» pin inputs, got «variables.ids.size()»''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
+				} else if (sensor.pins.size() > variables.ids.size()) {
+					warning('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
+				}
+//			OnbSensor:
+				//TODO: Check keyword expectations
+		}
+	}
 	
 	@Check
 	def validateLanguage(Language lang){
@@ -85,16 +100,17 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 
-	@Check
-	def validateSource(Data data) {
-		switch (data.eContainer) {
-			ExtSensor case data.input instanceof I2C:
-				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
-			OnbSensor case data.input instanceof Pin:
-				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
-		}
-
-	}
+// TODO: Fixme
+//	@Check
+//	def validateSource(Data data) {
+//		switch (data.eContainer) {
+//			ExtSensor case data.input instanceof I2C:
+//				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
+//			OnbSensor case data.input instanceof Pin:
+//				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
+//		}
+//
+//	}
 
 	@Check
 	def validateFilterExpression(Filter filter) {
