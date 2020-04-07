@@ -102,7 +102,7 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 	}
 
 	/**
-	 * Replaces an occurence of an incorrect input type such as
+	 * Replaces an occurrence of an incorrect input type such as
 	 * {@code i2c (0x23) as x(a,b)} with the correct alternative such as
 	 * {@code pin () as x(a,b)}.
 	 */
@@ -116,7 +116,7 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 			val ids = matcher.group(2).split(",")
 
 			document.replace(issue.offset,
-				issue.length, '''«inputType» () as «input»(«FOR id : ids SEPARATOR ","»«id»«ENDFOR»)''')
+				issue.length, '''«inputType» () as «input»(«FOR id : ids SEPARATOR ","»«id»«ENDFOR») ''')
 		} else {
 			document.replace(issue.offset, issue.length, '''«inputType» () as x()''')
 		}
