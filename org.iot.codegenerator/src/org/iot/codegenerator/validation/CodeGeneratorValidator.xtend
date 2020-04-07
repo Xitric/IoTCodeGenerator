@@ -26,9 +26,8 @@ import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.Filter
-import org.iot.codegenerator.codeGenerator.ExtSensor
-import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Language
+import org.iot.codegenerator.codeGenerator.Board
 import java.util.Arrays
 
 /**
@@ -73,12 +72,22 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			return
 		}
 	}
+	 
+	@Check 
+	def validateBoard(Board board){ 
+		val b = UtilityBoard.getBoard(board.name, board.version) 
+		if (b === null){
+			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
+		} else {
+			info('''Â«b.getVersion()Â» supports the following sensors: Â«b.getSensors()Â»''', CodeGeneratorPackage.eINSTANCE.board_Name)
+		}
+	}
 
 // TODO: Fixme	
 //	@Check
 //	def validatePinsMatchesVars(Pin pin){
 //		if (pin.ids.size() < pin.vars.ids.size()){
-//			error('''exprects «pin.vars.ids.size()» pin inputs, got «pin.ids.size()»''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
+//			error('''exprects ï¿½pin.vars.ids.size()ï¿½ pin inputs, got ï¿½pin.ids.size()ï¿½''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
 //		} else if (pin.ids.size() > pin.vars.ids.size()){
 //			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
 //		}	
@@ -88,7 +97,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateLanguage(Language lang){
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)){
-			error('''no support for language «lang.name», only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
+			error('''no support for language ï¿½lang.nameï¿½, only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
 		}
 	}
 
@@ -112,13 +121,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected «expected» got «actual»''', error)
+			error('''expected ï¿½expectedï¿½ got ï¿½actualï¿½''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got «type»''', error)
+			error('''expected number got ï¿½typeï¿½''', error)
 		}
 	}
 
