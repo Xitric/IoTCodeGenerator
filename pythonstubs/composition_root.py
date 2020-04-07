@@ -28,6 +28,11 @@ except ModuleNotFoundError:
 class CompositionRoot:
 
     def __init__(self):
+        # Singleton channels
+        self._outserial = None
+        self._inserial = None
+        self._endpoint1 = None
+
         with open("conf-filled.json", "r") as _conf_file:
             self.configuration = ujson.loads("".join(_conf_file.readlines()))
 
@@ -36,9 +41,9 @@ class CompositionRoot:
         # We can generate code that instantiates different types of board if needed
         board = Board()
         board.add_sensor("thermistor", self.provide_sensor_thermistor())
-        board.set_input_channel(self.provide_channel_inserial(board))
-        board.add_output_channel(self.provide_channel_outserial(board))
-        board.add_output_channel(self.provide_channel_endpoint1(board))
+        board.set_input_channel(self.provide_channel_inserial())
+        board.add_output_channel(self.provide_channel_outserial())
+        board.add_output_channel(self.provide_channel_endpoint1())
         return board
 
     # A provide method is created for every sensor
@@ -55,26 +60,33 @@ class CompositionRoot:
 
     # And for every pipeline
     def provide_pipeline_thermistor_voltage_1(self):
-        return Pipeline(InterceptorFilter1(InterceptorMap1(InterceptorWindowMean1(None))))
+        outserial = self.provide_channel_outserial()
+        return Pipeline(InterceptorFilter1(InterceptorMap1(InterceptorWindowMean1(
+            type('Sink', (object,), {
+                "handle": lambda data: outserial.send(struct.pack("f", data)),
+                # endpoint1.send(struct.pack("d", val)
+                # outserial.send(val.encode("utf-8")
+                "next": None
+            })
+        ))))
     
     # And for every channel (but only if it is referenced somewhere)
     # TODO: Instantiate channels that are registered in the environment after
     # generating the rest inside-out
-    def provide_channel_inserial(self, board):
-        return self.make_channel("inserial")
+    def provide_channel_inserial(self):
+        if not self._inserial:
+            self._inserial = self.make_channel("inserial")
+        return self._inserial
     
-    def provide_channel_outserial(self, board):
-        outserial = self.make_channel("outserial")
-        # The conversion to binary depends on the expected type of the value
-        board.subscribe("voltage", lambda val: outserial.send(struct.pack("f", val)))
-        board.subscribe("debug", lambda val: outserial.send(val.encode("utf-8")))
-        return outserial
+    def provide_channel_outserial(self):
+        if not self._outserial:
+            self._outserial = self.make_channel("outserial")
+        return self._outserial
     
-    def provide_channel_endpoint1(self, board):
-        endpoint1 = self.make_channel("endpoint1")
-        board.subscribe("voltage", lambda val: endpoint1.send(struct.pack("f", val)))
-        board.subscribe("watts", lambda val: endpoint1.send(struct.pack("d", val)))
-        return endpoint1
+    def provide_channel_endpoint1(self):
+        if not self._endpoint1:
+            self._endpoint1 = self.make_channel("endpoint1")
+        return self._endpoint1
     
     def make_channel(self, identifier: str):
         if self.configuration[identifier]["type"] == "serial":

@@ -12,6 +12,7 @@ import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.Cloud
 import org.iot.codegenerator.codeGenerator.Fog
+import org.iot.codegenerator.generator.python.board.BoardGenerator
 
 /**
  * Generates code from your model files on save.
