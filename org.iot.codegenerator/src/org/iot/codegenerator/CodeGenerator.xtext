@@ -181,7 +181,7 @@ Cloud:
 ;
 
 Transformation:
-	'transformation' name=ID 'as' variables=Variables BEGIN
+	'transformation' provider=[Data] 'as' variables=Variables BEGIN
 		datas+=TransformationData+
 	END
 ;
@@ -194,6 +194,10 @@ TransformationData returns Data:
 
 TransformationOut: 
 	'out' source=[Variables] pipeline=Pipeline?
+;
+
+Provider:
+	Sensor | Transformation
 ;
 
 terminal BEGIN: 'synthetic:BEGIN';
