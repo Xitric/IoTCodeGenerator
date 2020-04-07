@@ -132,31 +132,31 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		pipeline.type
 	}
 
-	@Check
-	def validateOutTypes(Data data) {
-		val outputs = data.outputs
-		System.out.println(outputs)
-		var list = new ArrayList()
-		
-		if (outputs.size > 1){
-			for (DataOut dataout : outputs){
-				
-				var pipeline = dataout.pipeline
-				while(pipeline.next !== null){
-					pipeline = pipeline.next
-				}
-				switch(pipeline){
-					Map: 
-						list.add((pipeline as Map).expression.type)
-					Filter, Abs, Reduce, Mean, Median, Var, Mode, StDev, Min, Max, Count:	
-						list.add((pipeline as TuplePipeline).expression.type)
-					default:
-						print("other")
-				}
-				System.out.println(list)
-			}
-		}
-	}
+//	@Check
+//	def validateOutTypes(Data data) {
+//		val outputs = data.outputs
+//		System.out.println(outputs)
+//		var list = new ArrayList()
+//		
+//		if (outputs.size > 1){
+//			for (DataOut dataout : outputs){
+//				
+//				var pipeline = dataout.pipeline
+//				while(pipeline.next !== null){
+//					pipeline = pipeline.next
+//				}
+//				switch(pipeline){
+//					Map: 
+//						list.add((pipeline as Map).expression.type)
+//					Filter, Abs, Reduce, Mean, Median, Var, Mode, StDev, Min, Max, Count:	
+//						list.add((pipeline as TuplePipeline).expression.type)
+//					default:
+//						print("other")
+//				}
+//				System.out.println(list)
+//			}
+//		}
+//	}
 
 	@Check
 	def checkExpression(Conditional conditional) {

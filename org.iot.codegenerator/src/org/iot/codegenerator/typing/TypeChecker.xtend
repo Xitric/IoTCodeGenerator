@@ -96,12 +96,23 @@ class TypeChecker {
 	def dispatch Type type(Source source) {
 		Type.VARS
 	}
+//	def dispatch Type type(Pipeline pipeline){
+//		if (pipeline instanceof Map) {
+//			val mapPipeline = (pipeline as Map)
+//			cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, mapPipeline.expression.type)	
+//		}
+//		if (pipeline.next !== null){
+//			pipeline.type
+//		} else {
+//			return pipeline
+//		}
+//	}
 	
 	def dispatch Type type(Pipeline pipeline){
 		if (pipeline instanceof Map) {
 			val mapPipeline = (pipeline as Map)
 			cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, mapPipeline.expression.type)	
-		}
+		}	
 		Type.PIPELINE
 	}
 	
