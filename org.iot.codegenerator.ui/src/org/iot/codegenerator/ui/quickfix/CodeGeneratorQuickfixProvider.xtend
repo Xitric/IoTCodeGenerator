@@ -9,7 +9,15 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
 import org.eclipse.xtext.ui.editor.quickfix.Fix
 import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
 import org.eclipse.xtext.validation.Issue
+import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.validation.CodeGeneratorValidator
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.CodeGeneratorFactory
+import org.iot.codegenerator.codeGenerator.DataID
+import org.iot.codegenerator.codeGenerator.DeviceConf
+import org.iot.codegenerator.codeGenerator.Cloud
+import org.iot.codegenerator.codeGenerator.TransformationIn
 
 /**
  * Custom quickfixes.
@@ -40,9 +48,57 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 	@Fix(CodeGeneratorValidator.INCORRECT_INPUT_TYPE_I2C)
 	def void changeInputTypeToPin(Issue issue, IssueResolutionAcceptor acceptor) {
 		acceptor.accept(issue, "Change input type to pin",
-		"External sensors communicate using IO pins, so you should change input type from i2c to pin", null, [ context |
-			context.xtextDocument.replaceInputType(issue, "pin")
-		])
+			"External sensors communicate using IO pins, so you should change input type from i2c to pin",
+			null, [ context |
+				context.xtextDocument.replaceInputType(issue, "pin")
+			])
+	}
+
+	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
+	def void insertUsageOfVariable(Issue issue, IssueResolutionAcceptor acceptor) {
+		acceptor.accept(issue, "Use the variable as output",
+			"The variable is not used as output, please consider using the variable", null, [ element, context |
+				val data = element.eContainer.getContainerOfType(Data)
+				val channel2 = element.getContainerOfType(DeviceConf).channels.last
+				val source2 = data.input
+				data.outputs.add(CodeGeneratorFactory.eINSTANCE.createDataOut() => [
+					channel = channel2
+					dataId = element as DataID
+					source = source2
+				])
+			])
+	}
+	
+	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
+	def void insertUsageOfVariableCloud(Issue issue, IssueResolutionAcceptor acceptor) {
+		acceptor.accept(issue, "Use the variable as output on cloud",
+			"The variable is not used as output, please consider using the variable", null, [ element, context |
+				val cloud = element.eContainer.getContainerOfType(DeviceConf).cloud.last
+				val data = cloud.transformations.last
+				val transIN = data.input as TransformationIn
+	
+				data.outputs.add(CodeGeneratorFactory.eINSTANCE.createTransformationOut() => [
+					entities = element as DataID
+					source = transIN
+					 
+					
+				])
+			])
+	}
+	
+	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
+	def void insertUsageOfVariableFog(Issue issue, IssueResolutionAcceptor acceptor) {
+		acceptor.accept(issue, "Use the variable as output on fog",
+			"The variable is not used as output, please consider using the variable", null, [ element, context |
+				val data = element.eContainer.getContainerOfType(Data)
+				val channel2 = element.getContainerOfType(DeviceConf).channels.last
+				val source2 = data.input
+				data.outputs.add(CodeGeneratorFactory.eINSTANCE.createDataOut() => [
+					channel = channel2
+					dataId = element as DataID
+					source = source2
+				])
+			])
 	}
 
 	/**

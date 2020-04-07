@@ -9,28 +9,33 @@ import org.eclipse.xtext.validation.Check
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Conditional
+import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.DeviceConf
-import org.iot.codegenerator.codeGenerator.Or
+import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Equal
-import org.iot.codegenerator.typing.TypeChecker
-import org.iot.codegenerator.codeGenerator.Unequal
-import org.iot.codegenerator.codeGenerator.LessThan
-import org.iot.codegenerator.codeGenerator.LessThanEqual
+import org.iot.codegenerator.codeGenerator.Exponent
+import org.iot.codegenerator.codeGenerator.ExtSensor
+import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.GreaterThan
 import org.iot.codegenerator.codeGenerator.GreaterThanEqual
-import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.I2C
+import org.iot.codegenerator.codeGenerator.LessThan
+import org.iot.codegenerator.codeGenerator.LessThanEqual
 import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
-import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Negation
-import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Not
-import org.iot.codegenerator.codeGenerator.Filter
-import org.iot.codegenerator.codeGenerator.Pin
-import org.iot.codegenerator.codeGenerator.ExtSensor
-import org.iot.codegenerator.codeGenerator.I2C
 import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.Or
+import org.iot.codegenerator.codeGenerator.Pin
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Unequal
+import org.iot.codegenerator.typing.TypeChecker
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
+import org.iot.codegenerator.codeGenerator.DataID
+import org.iot.codegenerator.codeGenerator.OutputDefinition
+import org.iot.codegenerator.codeGenerator.Transformation
 
 /**
  * This class contains custom validation rules. 
@@ -41,6 +46,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	public static val INCORRECT_INPUT_TYPE_PIN = "org.iot.codegenerator.IncorrectInputTypePin"
 	public static val INCORRECT_INPUT_TYPE_I2C = "org.iot.codegenerator.IncorrectInputTypeI2c"
+	public static val UNUSED_VARIABLE = "org.iot.codegenerator.UnusedVariable"
 
 	@Inject
 	extension TypeChecker
@@ -79,11 +85,29 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateSource(Data data) {
 		switch (data.eContainer) {
 			ExtSensor case data.input instanceof I2C:
-				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
+				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT,
+					INCORRECT_INPUT_TYPE_I2C)
 			OnbSensor case data.input instanceof Pin:
-				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
+				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT,
+					INCORRECT_INPUT_TYPE_PIN)
 		}
 
+	}
+
+	@Check
+	def validateUsageOfdataDeclaration(DataID dataid) {
+		val outputDef = dataid.eContainer.getContainerOfType(OutputDefinition)
+		switch (outputDef) {
+			Data:
+				if (!outputDef.outputs.exists[it.dataId === dataid]) {
+					warning('''Unused variable''', CodeGeneratorPackage.Literals.DATA_ID__NAME,UNUSED_VARIABLE)
+					
+				}
+			Transformation:
+				if (!outputDef.outputs.exists[it.entities === dataid]) {
+					warning('''Unused variable''', CodeGeneratorPackage.Literals.DATA_ID__NAME,UNUSED_VARIABLE)
+				}
+		}
 	}
 
 	@Check
