@@ -33,6 +33,9 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 		switch (reference) {
 			case codeGen.reference_Variable:
 				context.variableScope
+			case codeGen.transformationOut_Source,
+			case codeGen.channelOut_Source:
+				context.variablesScope
 			case codeGen.transformation_Provider:
 				context.transInIdScope
 			default:
@@ -48,6 +51,10 @@ class CodeGeneratorScopeProvider extends AbstractCodeGeneratorScopeProvider {
 			val providerContainer = context.eContainer.getContainerOfType(Provider)
 			Scopes.scopeFor(providerContainer.variables.ids)
 		}
+	}
+	
+	def private IScope getVariablesScope(EObject context) {
+		Scopes.scopeFor(Collections.singleton(context.getContainerOfType(Provider).variables))
 	}
 
 	def private IScope getTransInIdScope(EObject context) {
