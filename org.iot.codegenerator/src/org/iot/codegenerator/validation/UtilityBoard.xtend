@@ -1,9 +1,14 @@
 package org.iot.codegenerator.validation
 
 import java.util.List
+import org.iot.codegenerator.codeGenerator.Board
 
 class UtilityBoard {
 	static GenericBoard board = null
+	
+	def static <B extends GenericBoard> getBoard(Board b){
+		return UtilityBoard.getBoard(b.name, b.version)
+	}
 	
 	def static <B extends GenericBoard> getBoard(String model, String version){
 		var lowerCaseVersion = version

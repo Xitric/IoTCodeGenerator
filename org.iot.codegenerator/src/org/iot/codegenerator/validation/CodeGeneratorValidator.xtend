@@ -34,7 +34,7 @@ import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-
+import org.iot.codegenerator.codeGenerator.OnbSensor
 
 /**
  * This class contains custom validation rules. 
@@ -85,36 +85,35 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (b === null){
 			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
 		} else {
-			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''', CodeGeneratorPackage.eINSTANCE.board_Name)
+			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''', CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
 
 
-// TODO: Fixme	
-//	@Check
-//	def validatePinsMatchesVars(Pin pin){
-//		if (pin.ids.size() < pin.vars.ids.size()){
-//			error('''exprects �pin.vars.ids.size()� pin inputs, got �pin.ids.size()�''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-//		} else if (pin.ids.size() > pin.vars.ids.size()){
-//			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-//		}	
-//	} 
+	
+	@Check
+	def validateOnbSensorKeyword(OnbSensor sensor){
+		val b = UtilityBoard.getBoard(sensor.getContainerOfType(Board))
+		if (!b.getSensors().contains(sensor.name)){
+			error('''no support for «sensor.name»''', CodeGeneratorPackage.eINSTANCE.sensor_Name)
+		} 
+	} 
 
-//	@Check
-//	def validatePinsMatchesVars(Variables variables){
-//		val sensor = variables.getContainerOfType(Sensor)
-//		switch(sensor) {
-//			ExtSensor:
-//				if (sensor.pins.size() < variables.ids.size()) {
-//					error('''expected �sensor.pins.size()� pin inputs, got �variables.ids.size()�''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
-//				} else if (sensor.pins.size() > variables.ids.size()) {
-//					warning('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
-//				}
-//			OnbSensor:
-//				//TODO: Check keyword expectations
-//		}
-//	}
-
+	@Check
+	def validatePinsMatchesVars(Variables variables){
+		val sensor = variables.getContainerOfType(Sensor)
+		switch(sensor) {
+			ExtSensor: null
+				// TODO: fix pin reference
+				//if (sensor.pins.size() < variables.ids.size()) {
+				//	error('''expected �sensor.pins.size()� pin inputs, got �variables.ids.size()�''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
+				//} else if (sensor.pins.size() > variables.ids.size()) {
+				//	warning('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
+				//}
+			OnbSensor: null
+				
+		}
+	}
 	
 	@Check
 	def validateLanguage(Language lang){
@@ -125,18 +124,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
 		}
 	}
-
-// TODO: Fixme
-//	@Check
-//	def validateSource(Data data) {
-//		switch (data.eContainer) {
-//			ExtSensor case data.input instanceof I2C:
-//				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
-//			OnbSensor case data.input instanceof Pin:
-//				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
-//		}
-//
-//	}
 
 	@Check
 	def validateFilterExpression(Filter filter) {
