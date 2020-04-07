@@ -49,17 +49,4 @@ class GeneratorEnvironment {
 	def Iterable<Channel> getChannels() {
 		return channels
 	}
-
-	static def String asSafeImport(String module) {
-		if (#["ujson", "utime"].contains(module)) {
-			'''
-			try:
-			    import «module»
-			except ModuleNotFoundError:
-			    import «module.substring(1)» as «module»
-			'''
-		} else {
-			'''import «module»'''
-		}
-	}
 }

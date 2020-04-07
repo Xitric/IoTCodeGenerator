@@ -1,23 +1,18 @@
 package org.iot.codegenerator.generator.python.board
 
-import org.eclipse.emf.ecore.EObject
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.ChannelOut
-import org.iot.codegenerator.codeGenerator.Filter
-import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
-import org.iot.codegenerator.codeGenerator.TransformationOut
-import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
-import static extension org.iot.codegenerator.generator.python.GeneratorEnvironment.*
+import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 
 class CompositionRootGenerator {
 
@@ -26,12 +21,7 @@ class CompositionRootGenerator {
 		val classDef = board.compileClass(env)
 
 		'''
-			«FOR module : env.definitionImports»
-				from «module» import «FOR definition : env.getDefinitionsFor(module) SEPARATOR ", "»«definition»«ENDFOR»
-			«ENDFOR»
-			«FOR module : env.moduleImports»
-				«module.asSafeImport»
-			«ENDFOR»
+			«env.compileImports»
 			
 			«classDef»
 		'''
@@ -44,6 +34,7 @@ class CompositionRootGenerator {
 
 		'''
 			class CompositionRoot:
+				
 				«board.compileConstructor(env)»
 				«boardProvider»
 				«sensorProviders»
@@ -206,22 +197,5 @@ class CompositionRootGenerator {
 		].size + 1
 
 		'''provide_pipeline_«sensor.name.asModule»_«data.name.asModule»_«index»'''
-	}
-
-	private def String interceptorName(Pipeline pipeline) {
-		val type = switch (pipeline) {
-			Filter: "Filter"
-			Map: "Map"
-			Window: "Window"
-		}
-
-		val sensor = pipeline.getContainerOfType(Sensor)
-		val index = sensor.eAllContents.filter [
-			it.class == pipeline.class
-		].takeWhile [
-			it != pipeline
-		].size + 1
-
-		'''Interceptor«type»«index»'''
 	}
 }
