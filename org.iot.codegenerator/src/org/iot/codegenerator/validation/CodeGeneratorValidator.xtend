@@ -26,13 +26,9 @@ import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.Filter
-import org.iot.codegenerator.codeGenerator.Pin
 import org.iot.codegenerator.codeGenerator.ExtSensor
-import org.iot.codegenerator.codeGenerator.I2C
 import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Language
-import org.iot.codegenerator.codeGenerator.Source
 import java.util.Arrays
 
 /**
@@ -77,34 +73,36 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			return
 		}
 	}
-	
-	@Check
-	def validatePinsMatchesVars(Pin pin){
-		if (pin.ids.size() < pin.vars.ids.size()){
-			error('''exprects Â«pin.vars.ids.size()Â» pin inputs, got Â«pin.ids.size()Â»''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-		} else if (pin.ids.size() > pin.vars.ids.size()){
-			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-		}	
-	}
+
+// TODO: Fixme	
+//	@Check
+//	def validatePinsMatchesVars(Pin pin){
+//		if (pin.ids.size() < pin.vars.ids.size()){
+//			error('''exprects «pin.vars.ids.size()» pin inputs, got «pin.ids.size()»''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
+//		} else if (pin.ids.size() > pin.vars.ids.size()){
+//			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
+//		}	
+//	}
 	
 	@Check
 	def validateLanguage(Language lang){
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)){
-			error('''no support for language Â«lang.nameÂ», only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
+			error('''no support for language «lang.name», only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
 		}
 	}
 
-	@Check
-	def validateSource(Data data) {
-		switch (data.eContainer) {
-			ExtSensor case data.input instanceof I2C:
-				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
-			OnbSensor case data.input instanceof Pin:
-				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
-		}
-
-	}
+// TODO: Fixme
+//	@Check
+//	def validateSource(Data data) {
+//		switch (data.eContainer) {
+//			ExtSensor case data.input instanceof I2C:
+//				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
+//			OnbSensor case data.input instanceof Pin:
+//				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
+//		}
+//
+//	}
 
 	@Check
 	def validateFilterExpression(Filter filter) {
@@ -114,13 +112,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got Â«typeÂ»''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 
