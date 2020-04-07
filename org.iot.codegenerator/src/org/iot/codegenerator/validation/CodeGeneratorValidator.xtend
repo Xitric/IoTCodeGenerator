@@ -31,6 +31,22 @@ import org.iot.codegenerator.codeGenerator.ExtSensor
 import org.iot.codegenerator.codeGenerator.I2C
 import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Data
+import org.iot.codegenerator.codeGenerator.DataOut
+import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.TuplePipeline
+import org.iot.codegenerator.codeGenerator.MapPipeline
+import org.iot.codegenerator.codeGenerator.Pipeline
+import java.util.ArrayList
+import org.iot.codegenerator.codeGenerator.Abs
+import org.iot.codegenerator.codeGenerator.Reduce
+import org.iot.codegenerator.codeGenerator.Mean
+import org.iot.codegenerator.codeGenerator.Median
+import org.iot.codegenerator.codeGenerator.Mode
+import org.iot.codegenerator.codeGenerator.Var
+import org.iot.codegenerator.codeGenerator.StDev
+import org.iot.codegenerator.codeGenerator.Min
+import org.iot.codegenerator.codeGenerator.Count
+import org.iot.codegenerator.codeGenerator.Max
 
 /**
  * This class contains custom validation rules. 
@@ -79,9 +95,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateSource(Data data) {
 		switch (data.eContainer) {
 			ExtSensor case data.input instanceof I2C:
-				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
+				error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT,
+					INCORRECT_INPUT_TYPE_I2C)
 			OnbSensor case data.input instanceof Pin:
-				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
+				error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT,
+					INCORRECT_INPUT_TYPE_PIN)
 		}
 
 	}
@@ -94,13 +112,49 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected «expected» got «actual»''', error)
+			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got «type»''', error)
+			error('''expected number got Â«typeÂ»''', error)
+		}
+	}
+	
+	@Check
+	def validateDataOut(DataOut dataOut){
+		dataOut.type
+	} 
+	
+	@Check
+	def validatePipeline(Pipeline pipeline){
+		pipeline.type
+	}
+
+	@Check
+	def validateOutTypes(Data data) {
+		val outputs = data.outputs
+		System.out.println(outputs)
+		var list = new ArrayList()
+		
+		if (outputs.size > 1){
+			for (DataOut dataout : outputs){
+				
+				var pipeline = dataout.pipeline
+				while(pipeline.next !== null){
+					pipeline = pipeline.next
+				}
+				switch(pipeline){
+					Map: 
+						list.add((pipeline as Map).expression.type)
+					Filter, Abs, Reduce, Mean, Median, Var, Mode, StDev, Min, Max, Count:	
+						list.add((pipeline as TuplePipeline).expression.type)
+					default:
+						print("other")
+				}
+				System.out.println(list)
+			}
 		}
 	}
 
