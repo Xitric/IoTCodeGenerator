@@ -38,6 +38,9 @@ import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.typing.TypeChecker
 import java.util.List
+import org.iot.codegenerator.codeGenerator.Variable
+import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.codeGenerator.Provider
 
 /**
  * This class contains custom validation rules. 
@@ -189,6 +192,37 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				checkNoDuplicateDataName(datas)
 				return
 			}
+		}
+	}
+	
+	
+	def checkNoDuplicateVariableNamesInStatement(List<Variable> variables) {
+		val variableNameValues = new HashMap<String, Set<Variable>>
+
+		for (variable : variables) {
+			val name = variable.name
+			if (variableNameValues.containsKey(name)) {
+				variableNameValues.get(name).add(variable)
+			} else {
+				variableNameValues.put(name, Sets.newHashSet(variable))
+			}
+		}
+
+		for (Set<Variable> variableSet : variableNameValues.values) {
+			if (variableSet.size > 1) {
+				for (variable : variableSet) {
+					error('''duplicate '«variable.name»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+				}
+			}
+		}
+	}
+	
+	@Check
+	def validateVariable(Variables variables){	
+		val eContainer = variables.eContainer
+		if (eContainer instanceof Provider){
+			val provider = eContainer as Provider
+			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
 		}
 	}
 
