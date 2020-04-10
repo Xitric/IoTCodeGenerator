@@ -8,7 +8,11 @@ generate codeGenerator "http://www.iot.org/codegenerator/CodeGenerator"
 // ensure that board, fog, and cloud are not overwritten. This grammar is loose
 // and allows for specifying things in any order
 DeviceConf:
-	(channels+=Channel | board+=Board | fog+=Fog | cloud+=Cloud)*
+	language=Language (channels+=Channel | board+=Board | fog+=Fog | cloud+=Cloud)*
+;
+
+Language:
+	'language' name=ID
 ;
 
 Channel:
@@ -16,64 +20,53 @@ Channel:
 ;
 
 Board:
-	'board' name=ID BEGIN
-		BoardIn sensors+=(ExtSensor | OnbSensor)+
+	'board' name=ID 'version' version=ID BEGIN
+		'in' input=[Channel] sensors+=Sensor+
 	END
 ;
 
-BoardIn:
-	'in' input=[Channel]
-;
-
-ExtSensor returns Sensor:
-	{ExtSensor} 'extsensor' name=ID BEGIN
-		sampler=Sampler datas+=Data+
+Sensor:
+	'sensor' (ExtSensor | OnbSensor) 'as' variables=Variables BEGIN
+		sampler=Sampler datas+=SensorData+
 	END
 ;
 
-OnbSensor returns Sensor:
-	{OnbSensor} 'onbsensor' name=ID BEGIN
-		sampler=Sampler datas+=Data+
-	END
+ExtSensor:
+	name=ID '('pins+=INT (',' pins+=INT)* ')'
+;
+
+OnbSensor:
+	name=ID
+;
+
+Variables:
+	name=ID '(' ids+=Variable (',' ids+=Variable)* ')'
+;
+
+Variable:
+	name=ID
 ;
 
 Sampler:
 	'sample' ({FrequencySampler} 'frequency' delay=INT | {SignalSampler} 'signal')
 ;
 
-Data:
-	'data' entities+=DataID (',' entities+=DataID)* BEGIN
-		input = (I2C | Pin) 
-		outputs += DataOut+
+SensorData returns Data:
+	{SensorData} 'data' name=ID BEGIN
+		outputs += SensorDataOut+
 	END
 ;
 
-DataID:
-	name=ID
+SensorDataOut:
+	ScreenOut | ChannelOut
 ;
 
-Source:
-	I2C|Pin
+ScreenOut:
+	'out' 'oled' prints+=Expression
 ;
 
-I2C:
-	'i2c' '(' address=HEX ')' 'as' name=ID vars=Vars 
-;
-
-Pin:
-	'pin' '('ids+=INT (',' ids+=INT)* ')' 'as' name=ID vars=Vars
-;
-
-Vars:
-	'(' ids+=VarID (',' ids+=VarID)* ')'
-;
-
-VarID:
-	name=ID
-;
-
-DataOut:
-	'out' channel=[Channel] dataId=[DataID] source=[Source] pipeline=Pipeline?
+ChannelOut:
+	'out' channel=[Channel] source=[Variables] pipeline=Pipeline?
 ;
 
 Pipeline:
@@ -85,7 +78,7 @@ TuplePipeline:
 ;
 
 MapPipeline:
-	{Map} 'map' '['expression=Expression '->' output=VarID ']'
+	{Map} 'map' '['expression=Expression '->' output=Variable ']'
 ;
 
 WindowPipeline:
@@ -160,7 +153,7 @@ Primary returns Expression:
 ;
 
 Reference:
-	varid=[VarID]
+	variable=[Variable]
 ;
 
 StringLiteral:
@@ -187,23 +180,24 @@ Cloud:
 	END
 ;
 
-OutputDefinition:
-	Transformation | Data
-;
-
 Transformation:
-	'transformation' entities+=DataID (',' entities+=DataID)* BEGIN
-		input=TransformationIn
-		outputs+=TransformationOut+
+	'transformation' provider=[Data] 'as' variables=Variables BEGIN
+		datas+=TransformationData+
 	END
 ;
 
-TransformationIn returns Source:
-	{TransformationIn} 'in' entities=[DataID] 'as' name=ID vars=Vars
+TransformationData returns Data:
+	{TransformationData} 'data' name=ID BEGIN
+		outputs += TransformationOut+ 	
+	END
 ;
 
 TransformationOut: 
-	'out' entities=[DataID] source=[TransformationIn] pipeline=Pipeline
+	'out' source=[Variables] pipeline=Pipeline?
+;
+
+Provider:
+	Sensor | Transformation
 ;
 
 terminal BEGIN: 'synthetic:BEGIN';
@@ -212,9 +206,6 @@ terminal END: 'synthetic:END';
 @Override 
 terminal INT returns ecore::EInt:
 	'0' | ('1'..'9')('0'..'9')*
-;
-terminal HEX:
-	'0x' ('0'..'9' | 'a'..'f' | 'A'..'F')+
 ;
 terminal DBL returns ecore::EDouble:
 	INT? '.'('0'..'9')+
@@ -226,5 +217,5 @@ terminal BOOLEAN returns ecore::EBoolean:
 	'true' | 'false'
 ;
 NUMBER hidden():
-	INT | HEX | DBL | SCI
+	INT | DBL | SCI
 ;
