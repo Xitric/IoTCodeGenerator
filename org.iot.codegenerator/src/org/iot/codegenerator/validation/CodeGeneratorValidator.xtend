@@ -12,6 +12,7 @@ import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Div
+import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Equal
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.ExtSensor
@@ -35,23 +36,15 @@ import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.Data
-import org.iot.codegenerator.codeGenerator.DataOut
-import org.iot.codegenerator.codeGenerator.Map
-import org.iot.codegenerator.codeGenerator.TuplePipeline
-import org.iot.codegenerator.codeGenerator.MapPipeline
 import org.iot.codegenerator.codeGenerator.Pipeline
+import org.iot.codegenerator.codeGenerator.TransformationData
+import org.iot.codegenerator.codeGenerator.SensorData
+import org.iot.codegenerator.codeGenerator.TransformationOut
+import org.iot.codegenerator.codeGenerator.SensorDataOut
+import org.iot.codegenerator.codeGenerator.ChannelOut
 import java.util.ArrayList
-import org.iot.codegenerator.codeGenerator.Abs
-import org.iot.codegenerator.codeGenerator.Reduce
-import org.iot.codegenerator.codeGenerator.Mean
-import org.iot.codegenerator.codeGenerator.Median
-import org.iot.codegenerator.codeGenerator.Mode
-import org.iot.codegenerator.codeGenerator.Var
-import org.iot.codegenerator.codeGenerator.StDev
-import org.iot.codegenerator.codeGenerator.Min
-import org.iot.codegenerator.codeGenerator.Count
-import org.iot.codegenerator.codeGenerator.Max
+import java.util.List
+import org.iot.codegenerator.codeGenerator.WindowPipeline
 
 /**
  * This class contains custom validation rules. 
@@ -161,40 +154,67 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	}
 	
 	@Check
-	def validateDataOut(DataOut dataOut){
-		dataOut.type
+	def validateDataOut(Variables variables){
+		variables.cacheVariables
+	} 
+	
+	def checkWindowPipeline(Pipeline pipeline){
+		if (pipeline instanceof WindowPipeline){
+			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+		}
+	}
+
+	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
+		if (transformationOuts.size >1){
+			val firstPipelineType = transformationOuts.get(0).pipeline.lastType
+			for(TransformationOut transformationOut: transformationOuts){
+				val currentPipelineType = transformationOut.pipeline.lastType
+				if (firstPipelineType !== currentPipelineType){
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
+						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
+					)
+				}
+			}
+		}
+	} 
+	
+	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
+		if (channelOuts.size >1){
+			val firstPipelineType = channelOuts.get(0).pipeline.lastType
+			for(ChannelOut channelOut: channelOuts){
+				val currentPipelineType = channelOut.pipeline.lastType
+				if (firstPipelineType !== currentPipelineType){
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
+						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
+					)
+				}
+			}
+		}
 	} 
 	
 	@Check
-	def validatePipeline(Pipeline pipeline){
-		pipeline.type
+	def validatePipelineOutputs(Data data){
+		if (data instanceof TransformationData){
+			var transformationOuts = new ArrayList<TransformationOut>
+			val transformationDataOutputs = (data as TransformationData).outputs
+			for (TransformationOut transformationOut : transformationDataOutputs){
+				transformationOuts.add(transformationOut)
+				checkWindowPipeline(transformationOut.pipeline)
+			}
+			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
+		} else if (data instanceof SensorData){
+			var channelOuts = new ArrayList<ChannelOut>
+			val sensorData = data as SensorData
+			for(SensorDataOut sensorDataOut : sensorData.outputs ){
+				if (sensorDataOut instanceof ChannelOut){
+					val channelOut = sensorDataOut as ChannelOut
+					channelOuts.add(channelOut)
+					checkWindowPipeline(channelOut.pipeline)
+				}
+			}
+			checkSameTypeOfChannelOutPipelines(channelOuts)
+		}	
 	}
-
-//	@Check
-//	def validateOutTypes(Data data) {
-//		val outputs = data.outputs
-//		System.out.println(outputs)
-//		var list = new ArrayList()
-//		
-//		if (outputs.size > 1){
-//			for (DataOut dataout : outputs){
-//				
-//				var pipeline = dataout.pipeline
-//				while(pipeline.next !== null){
-//					pipeline = pipeline.next
-//				}
-//				switch(pipeline){
-//					Map: 
-//						list.add((pipeline as Map).expression.type)
-//					Filter, Abs, Reduce, Mean, Median, Var, Mode, StDev, Min, Max, Count:	
-//						list.add((pipeline as TuplePipeline).expression.type)
-//					default:
-//						print("other")
-//				}
-//				System.out.println(list)
-//			}
-//		}
-//	}
 
 	@Check
 	def checkExpression(Conditional conditional) {

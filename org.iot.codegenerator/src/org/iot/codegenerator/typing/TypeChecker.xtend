@@ -12,15 +12,22 @@ import org.iot.codegenerator.codeGenerator.NumberLiteral
 import org.iot.codegenerator.codeGenerator.Plus
 import org.iot.codegenerator.codeGenerator.Reference
 import org.iot.codegenerator.codeGenerator.StringLiteral
-import org.iot.codegenerator.codeGenerator.DataOut
-import org.iot.codegenerator.codeGenerator.TuplePipeline
-import org.iot.codegenerator.codeGenerator.Map
-import org.eclipse.xtext.util.IResourceScopeCache
-import com.google.inject.Inject
-import org.iot.codegenerator.codeGenerator.Source
-import org.iot.codegenerator.codeGenerator.VarID
 import org.eclipse.xtext.util.OnChangeEvictingCache
+import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.Pipeline
+import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.codeGenerator.Variable
+import org.iot.codegenerator.codeGenerator.Var
+import org.iot.codegenerator.codeGenerator.StDev
+import org.iot.codegenerator.codeGenerator.Count
+import org.iot.codegenerator.codeGenerator.Max
+import org.iot.codegenerator.codeGenerator.Mean
+import org.iot.codegenerator.codeGenerator.Median
+import org.iot.codegenerator.codeGenerator.Min
+import org.iot.codegenerator.codeGenerator.Mode
+import org.iot.codegenerator.codeGenerator.Reduce
+import org.iot.codegenerator.codeGenerator.WindowPipeline
 
 class TypeChecker {
 
@@ -31,10 +38,7 @@ class TypeChecker {
 		DOUBLE,
 		BOOLEAN,
 		STRING,
-		INVALID,
-		VARS,
-		PIPELINE,
-		DATAOUT
+		INVALID
 	}
 
 	def dispatch Type type(NumberLiteral number) {
@@ -92,37 +96,32 @@ class TypeChecker {
 			Type.INT
 		}
 	}
-
-	def dispatch Type type(Source source) {
-		Type.VARS
-	}
-//	def dispatch Type type(Pipeline pipeline){
-//		if (pipeline instanceof Map) {
-//			val mapPipeline = (pipeline as Map)
-//			cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, mapPipeline.expression.type)	
-//		}
-//		if (pipeline.next !== null){
-//			pipeline.type
-//		} else {
-//			return pipeline
-//		}
-//	}
 	
-	def dispatch Type type(Pipeline pipeline){
-		if (pipeline instanceof Map) {
-			val mapPipeline = (pipeline as Map)
-			cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, mapPipeline.expression.type)	
-		}	
-		Type.PIPELINE
-	}
-	
-	def dispatch Type type(DataOut dataOut) {
-		for (VarID varId : dataOut.source.vars.ids){
-			cache.getOrCreate(varId.eResource).set(varId.name, Type.INT)
+	def Type lastType(Pipeline pipeline){	
+		var type = Type.INT
+		var pipe = pipeline
+		while(pipe !== null){
+			if (pipe instanceof Map) {
+				val mapPipeline = (pipe as Map)
+				type = mapPipeline.expression.type
+				cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, type)
+			} else {
+				switch(pipe){
+					case Count, Max, Mean, Median, Min, Mode, Reduce, StDev, Var, WindowPipeline:
+						type = Type.INT
+				}
+			}
+			pipe = pipe.next
 		}
-		Type.DATAOUT
+		return type
 	}
 
+	def cacheVariables(Variables variables){
+		for (Variable variable : variables.ids){
+			cache.getOrCreate(variable.eResource).set(variable.name, Type.INT)
+		}
+	}
+	
 	def dispatch Type type(Plus plus) {
 		if (plus.left.type == Type.STRING || plus.right.type == Type.STRING) {
 			Type.STRING
@@ -160,7 +159,7 @@ class TypeChecker {
 	}
 
 	def dispatch Type type(Reference reference) {
-		val cached = cache.get(reference.varid.name, reference.eResource, [Type.INVALID])
+		val cached = cache.get(reference.variable.name, reference.eResource, [Type.INVALID])
 		return cached
 	}
 }
