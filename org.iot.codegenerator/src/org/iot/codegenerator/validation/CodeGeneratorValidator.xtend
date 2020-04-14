@@ -48,6 +48,7 @@ import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
+import org.eclipse.xtext.validation.CheckType
 
 /**
  * This class contains custom validation rules. 
@@ -62,32 +63,32 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Inject
 	extension TypeChecker
 
-	@Check
+	@Check(CheckType.NORMAL)
 	def checkDeviceConfiguration(DeviceConf configuration) {
 		val boards = configuration.board
 
 		if (boards.size() < 1) {
-			warning('''there should be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
+			error('''There must be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
 			return
 		} else if (boards.size() > 1) {
-			error('''there must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
+			error('''There must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
 			return
 		}
 
 		val clouds = configuration.cloud
 
 		if (clouds.size() < 1) {
-			warning('''there should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
+			warning('''There should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
 			return
 		} else if (clouds.size() > 1) {
-			error('''there must be exactly 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
+			error('''There must be at most 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
 			return
 		}
 
 		val fogs = configuration.fog
 
 		if (fogs.size() > 1) {
-			error('''there must at maximum be 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
+			error('''There must be at most 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
 			return
 		}
 	}
@@ -201,35 +202,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
 		}
 	}
-
-	@Check
-	def validateFilterExpression(Filter filter) {
-		filter.expression.type.validateTypes(TypeChecker.Type.BOOLEAN,
-			CodeGeneratorPackage.Literals.TUPLE_PIPELINE__EXPRESSION)
-	}
-
-	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
-		if (expected != actual) {
-			error('''expected «expected» got «actual»''', error)
-		}
-	}
-
-	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
-		if (!type.isNumberType) {
-			error('''expected number got «type»''', error)
-		}
-	}
 	
 	@Check
 	def validateDataOut(Variables variables){
 		variables.cacheVariables
 	} 
-	
-	def checkWindowPipeline(Pipeline pipeline){
-		if (pipeline instanceof WindowPipeline){
-			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
-		}
-	}
 
 	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
 		if (transformationOuts.size >1){
@@ -257,23 +234,31 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				}
 			}
 		}
-	} 
+	}
+	
+	def checkWindowPipeline(Pipeline pipeline) {
+		if (pipeline instanceof WindowPipeline) {
+			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+		}
+	}
 	
 	@Check
 	def validatePipelineOutputs(Data data){
-		if (data instanceof TransformationData){
+		if (data instanceof TransformationData) {
 			var transformationOuts = new ArrayList<TransformationOut>
 			val transformationDataOutputs = (data as TransformationData).outputs
-			for (TransformationOut transformationOut : transformationDataOutputs){
+			
+			for (TransformationOut transformationOut : transformationDataOutputs) {
 				transformationOuts.add(transformationOut)
 				checkWindowPipeline(transformationOut.pipeline)
 			}
 			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
-		} else if (data instanceof SensorData){
+		} else if (data instanceof SensorData) {
 			var channelOuts = new ArrayList<ChannelOut>
-			val sensorData = data as SensorData
-			for(SensorDataOut sensorDataOut : sensorData.outputs ){
-				if (sensorDataOut instanceof ChannelOut){
+			val sensorDataOutputs = (data as SensorData).outputs
+			
+			for(SensorDataOut sensorDataOut : sensorDataOutputs) {
+				if (sensorDataOut instanceof ChannelOut) {
 					val channelOut = sensorDataOut as ChannelOut
 					channelOuts.add(channelOut)
 					checkWindowPipeline(channelOut.pipeline)
@@ -281,6 +266,24 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			}
 			checkSameTypeOfChannelOutPipelines(channelOuts)
 		}	
+	}
+	
+	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
+		if (expected != actual) {
+			error('''expected «expected» got «actual»''', error)
+		}
+	}
+
+	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
+		if (!type.isNumberType) {
+			error('''expected number got «type»''', error)
+		}
+	}
+
+	@Check
+	def validateFilterExpression(Filter filter) {
+		filter.expression.type.validateTypes(TypeChecker.Type.BOOLEAN,
+			CodeGeneratorPackage.Literals.TUPLE_PIPELINE__EXPRESSION)
 	}
 
 	@Check
