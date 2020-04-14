@@ -47,13 +47,12 @@ import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.TransformationOut
 import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.ChannelOut
-import java.util.ArrayList
 import java.util.List
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Provider
-
+import static extension org.eclipse.xtext.EcoreUtil2.*
 /**
  * This class contains custom validation rules. 
  * 
@@ -105,6 +104,22 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		} else {
 			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
 				CodeGeneratorPackage.eINSTANCE.board_Version)
+		}
+	}
+	
+	@Check
+	def validateOnboardSensor(Sensor sensor) {
+		
+		if (sensor instanceof OnbSensor){
+			val cb = sensor.getContainerOfType(Board)
+			val b = UtilityBoard.getBoard(cb.name, cb.version)
+			var s = sensor as OnbSensor
+			
+			if (s.variables.ids.length > b.getVariables(s.sensortype)){
+				error('''maximal number of output variables is «b.getVariables(s.sensortype)»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (s.variables.ids.length < b.getVariables(s.sensortype)){
+				info('''«s.sensortype» supports up to «b.getVariables(s.sensortype)» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			}
 		}
 	}
 	
