@@ -17,9 +17,11 @@ class UtilityBoard {
 			lowerCaseVersion = lowerCaseVersion.toLowerCase()
 		}
 		
-		if (model.toLowerCase().equals("esp32") && validateBoardVersion(lowerCaseVersion)){
+		if (model.toLowerCase().equals("esp32")){ // && validateBoardVersion(lowerCaseVersion)){
 			board = new ESP32(lowerCaseVersion)
-		} 
+		} else {
+			board = null
+		}
 		
 		return board
 	}
