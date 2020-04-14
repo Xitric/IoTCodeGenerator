@@ -100,52 +100,21 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		} else {
 			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
 				CodeGeneratorPackage.eINSTANCE.board_Name)
+			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
+				CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
-
-// TODO: Fixme	
-//	@Check
-//	def validatePinsMatchesVars(Pin pin){
-//		if (pin.ids.size() < pin.vars.ids.size()){
-//			error('''exprects ï¿½pin.vars.ids.size()ï¿½ pin inputs, got ï¿½pin.ids.size()ï¿½''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-//		} else if (pin.ids.size() > pin.vars.ids.size()){
-//			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-//		}	
-//	} 
-//	@Check
-//	def validatePinsMatchesVars(Variables variables){
-//		val sensor = variables.getContainerOfType(Sensor)
-//		switch(sensor) {
-//			ExtSensor:
-//				if (sensor.pins.size() < variables.ids.size()) {
-//					error('''expected ï¿½sensor.pins.size()ï¿½ pin inputs, got ï¿½variables.ids.size()ï¿½''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
-//				} else if (sensor.pins.size() > variables.ids.size()) {
-//					warning('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
-//				}
-//			OnbSensor:
-//				//TODO: Check keyword expectations
-//		}
-//	}
-	@Check
+	
+	@Check 
 	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)) {
-			error('''no support for language «lang.name», only "python" and "cplusplus"''',
+			error('''no support for language ï¿½lang.nameï¿½, only "python" and "cplusplus"''',
 				CodeGeneratorPackage.eINSTANCE.language_Name)
 		} else {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
 		}
 	}
-
-// TODO: Fixme	
-//	@Check
-//	def validateSource(Data data) {
-//	switch (data.eContainer) {
-//		ExtSensor case data.input instanceof I2C:
-//			error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
-//		OnbSensor case data.input instanceof Pin:
-//			error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
-//	}
 
 	def checkNoDuplicateDataName(List<Data> datas) {
 		val dataNameValues = new HashMap<String, Set<Data>>
@@ -162,7 +131,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Data> dataSet : dataNameValues.values) {
 			if (dataSet.size > 1) {
 				for (data : dataSet) {
-					error('''duplicate '«data.name»' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+					error('''duplicate 'ï¿½data.nameï¿½' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
 				}
 			}
 		}
@@ -218,7 +187,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Variable> variableSet : variableNameValues.values) {
 			if (variableSet.size > 1) {
 				for (variable : variableSet) {
-					error('''duplicate '«variable.name»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+					error('''duplicate 'ï¿½variable.nameï¿½' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 				}
 			}
 		}
@@ -241,13 +210,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected «expected» got «actual»''', error)
+			error('''expected ï¿½expectedï¿½ got ï¿½actualï¿½''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got «type»''', error)
+			error('''expected number got ï¿½typeï¿½''', error)
 		}
 	}
 	
@@ -268,7 +237,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(TransformationOut transformationOut: transformationOuts){
 				val currentPipelineType = transformationOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
+					error('''expected ï¿½firstPipelineTypeï¿½ got ï¿½currentPipelineTypeï¿½''',
 						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
 					)
 				}
@@ -282,7 +251,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
+					error('''expected ï¿½firstPipelineTypeï¿½ got ï¿½currentPipelineTypeï¿½''',
 						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
 					)
 				}
