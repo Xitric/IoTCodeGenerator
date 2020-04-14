@@ -11,7 +11,7 @@ class BoardGenerator {
 
 		val sensorGenerator = new SensorGenerator()
 		board.sensors.forEach [
-			fsa.generateFile('''board/«type».py''', sensorGenerator.compile(it))
+			fsa.generateFile('''board/«sensortype».py''', sensorGenerator.compile(it))
 		]
 	}
 }

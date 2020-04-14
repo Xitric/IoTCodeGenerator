@@ -32,7 +32,7 @@ class SensorGenerator {
 	private def String compileClass(Sensor sensor, GeneratorEnvironment env) {
 		// TODO: Only generate testing utilities if we pass a testing flag to the generator
 		'''
-			class «sensor.type.asClass»:
+			class «sensor.sensortype.asClass»:
 				
 				«sensor.compileConstructor(env)»
 				«sensor.compileTimerLoop(env)»
@@ -49,7 +49,7 @@ class SensorGenerator {
 				self.sensor = sensor
 				self.variables = {}
 				«IF sensor.isFrequency»
-					self.thread = «env.useImport("thread")».Thread(self.__timer, "Thread«sensor.type.asClass»")
+					self.thread = «env.useImport("thread")».Thread(self.__timer, "Thread«sensor.sensortype.asClass»")
 					self.thread.start()
 				«ENDIF»
 				
@@ -122,7 +122,7 @@ class SensorGenerator {
 		'''
 			class «filter.interceptorName»:
 				def handle(self, «filter.source.name.asInstance»):
-					print("Filter")  # TODO: Testing
+					print("Filter")
 					_should_continue = «filter.expression.compile»
 					if _should_continue:
 						self.next.handle(«filter.source.name.asInstance»)
@@ -134,7 +134,7 @@ class SensorGenerator {
 		'''
 			class «map.interceptorName»:
 				def handle(self, «map.source.name.asInstance»):
-					print("Map")  # TODO: Testing
+					print("Map")
 					_newValue = «map.expression.compile»
 					self.next.handle(_newValue)
 			
@@ -149,7 +149,7 @@ class SensorGenerator {
 					self._buffer = []
 				
 				def handle(self, «window.source.name.asInstance»):
-					print("Window")  # TODO: Testing
+					print("Window")
 					self._buffer.append(«window.source.name.asInstance»)
 					if len(self._buffer) == «window.width»:
 						_result =  # TODO: Unsupported
