@@ -84,7 +84,7 @@ MapPipeline:
 ;
 
 WindowPipeline:
-	'byWindow['width=INT']' '.' executePipeline=ExecutePipeline
+	{Window} 'byWindow['width=INT']' '.' executePipeline=ExecutePipeline
 ;
 
 ExecutePipeline:

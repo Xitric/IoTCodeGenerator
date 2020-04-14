@@ -45,9 +45,14 @@ import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
+import org.iot.codegenerator.codeGenerator.SensorDataOut
+import org.iot.codegenerator.codeGenerator.ChannelOut
+import java.util.ArrayList
+import java.util.List
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.codeGenerator.WindowPipeline
 import static extension org.eclipse.xtext.EcoreUtil2.*
 
 import org.iot.codegenerator.codeGenerator.Unequal
