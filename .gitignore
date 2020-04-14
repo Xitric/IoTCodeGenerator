@@ -171,3 +171,5 @@ test-bin/
 *.xml_gen
 
 # End of https://www.gitignore.io/api/xtext,eclipse,intellij
+
+.DS_Store
