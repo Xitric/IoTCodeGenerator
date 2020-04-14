@@ -9,15 +9,19 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
 import org.eclipse.xtext.ui.editor.quickfix.Fix
 import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
 import org.eclipse.xtext.validation.Issue
-import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.validation.CodeGeneratorValidator
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import org.iot.codegenerator.codeGenerator.CodeGeneratorFactory
-import org.iot.codegenerator.codeGenerator.DataID
 import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Cloud
-import org.iot.codegenerator.codeGenerator.TransformationIn
+import org.iot.codegenerator.codeGenerator.SensorData
+import org.eclipse.jface.text.FindReplaceDocumentAdapter
+import org.eclipse.xtext.nodemodel.util.NodeModelUtils
+import org.eclipse.xtext.nodemodel.INode
+import org.iot.codegenerator.codeGenerator.Fog
+import org.iot.codegenerator.codeGenerator.TransformationData
+import org.iot.codegenerator.codeGenerator.TransformationOut
 
 /**
  * Custom quickfixes.
@@ -56,48 +60,32 @@ class CodeGeneratorQuickfixProvider extends DefaultQuickfixProvider {
 
 	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
 	def void insertUsageOfVariable(Issue issue, IssueResolutionAcceptor acceptor) {
-		acceptor.accept(issue, "Use the variable as output",
-			"The variable is not used as output, please consider using the variable", null, [ element, context |
-				val data = element.eContainer.getContainerOfType(Data)
-				val channel2 = element.getContainerOfType(DeviceConf).channels.last
-				val source2 = data.input
-				data.outputs.add(CodeGeneratorFactory.eINSTANCE.createDataOut() => [
-					channel = channel2
-					dataId = element as DataID
-					source = source2
-				])
+		acceptor.accept(issue, "Use the variable in fog",
+			"The variable is not used, please consider using the variable", null, [ element, context |
+				val deviceConf = element.eContainer.getContainerOfType(DeviceConf)
+				val fog = deviceConf.fog.last
+				val transformation = fog.transformations.last
+				val INode node = NodeModelUtils.getNode(transformation)    
+				val issueText = context.xtextDocument.get(issue.offset, issue.length)            
+
+                context.xtextDocument.replace(node.endOffset,0,"\n\ttransformation " + issueText + " as x(a) \n" + "\t\tdata x \n" + "\t\t\tout x")
+                
 			])
 	}
+
 	
 	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
 	def void insertUsageOfVariableCloud(Issue issue, IssueResolutionAcceptor acceptor) {
-		acceptor.accept(issue, "Use the variable as output on cloud",
-			"The variable is not used as output, please consider using the variable", null, [ element, context |
-				val cloud = element.eContainer.getContainerOfType(DeviceConf).cloud.last
-				val data = cloud.transformations.last
-				val transIN = data.input as TransformationIn
-	
-				data.outputs.add(CodeGeneratorFactory.eINSTANCE.createTransformationOut() => [
-					entities = element as DataID
-					source = transIN
-					 
-					
-				])
-			])
-	}
-	
-	@Fix(CodeGeneratorValidator.UNUSED_VARIABLE)
-	def void insertUsageOfVariableFog(Issue issue, IssueResolutionAcceptor acceptor) {
-		acceptor.accept(issue, "Use the variable as output on fog",
-			"The variable is not used as output, please consider using the variable", null, [ element, context |
-				val data = element.eContainer.getContainerOfType(Data)
-				val channel2 = element.getContainerOfType(DeviceConf).channels.last
-				val source2 = data.input
-				data.outputs.add(CodeGeneratorFactory.eINSTANCE.createDataOut() => [
-					channel = channel2
-					dataId = element as DataID
-					source = source2
-				])
+		acceptor.accept(issue, "Use the variable in cloud",
+			"The variable is not used, please consider using the variable", null, [ element, context |
+				val deviceConf = element.eContainer.getContainerOfType(DeviceConf)
+				val cloud = deviceConf.cloud.last
+				val transformation = cloud.transformations.last
+				val INode node = NodeModelUtils.getNode(transformation)    
+				val issueText = context.xtextDocument.get(issue.offset, issue.length)            
+
+                context.xtextDocument.replace(node.endOffset,0,"\n\ttransformation " + issueText + " as x(a) \n" + "\t\tdata x \n" + "\t\t\tout x")
+                
 			])
 	}
 

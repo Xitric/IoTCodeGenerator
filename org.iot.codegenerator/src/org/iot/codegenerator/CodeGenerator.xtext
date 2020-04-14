@@ -32,11 +32,13 @@ Sensor:
 ;
 
 ExtSensor:
-	name=ID '('pins+=INT (',' pins+=INT)* ')'
+	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
+	type=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
-	name=ID
+	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
+	type=ID
 ;
 
 Variables:
@@ -51,7 +53,7 @@ Sampler:
 	'sample' ({FrequencySampler} 'frequency' delay=INT | {SignalSampler} 'signal')
 ;
 
-SensorData returns Data:
+SensorData:
 	{SensorData} 'data' name=ID BEGIN
 		outputs += SensorDataOut+
 	END
@@ -186,7 +188,7 @@ Transformation:
 	END
 ;
 
-TransformationData returns Data:
+TransformationData:
 	{TransformationData} 'data' name=ID BEGIN
 		outputs += TransformationOut+ 	
 	END

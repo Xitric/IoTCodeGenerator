@@ -4,37 +4,35 @@
 package org.iot.codegenerator.validation
 
 import com.google.inject.Inject
+import java.util.Arrays
+import java.util.stream.Collectors
+import java.util.stream.Stream
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Conditional
-import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Equal
 import org.iot.codegenerator.codeGenerator.Exponent
-import org.iot.codegenerator.codeGenerator.ExtSensor
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.GreaterThan
 import org.iot.codegenerator.codeGenerator.GreaterThanEqual
-import org.iot.codegenerator.codeGenerator.I2C
+import org.iot.codegenerator.codeGenerator.Language
 import org.iot.codegenerator.codeGenerator.LessThan
 import org.iot.codegenerator.codeGenerator.LessThanEqual
 import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Not
-import org.iot.codegenerator.codeGenerator.Filter
-import org.iot.codegenerator.codeGenerator.ExtSensor
-import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.Language
-import java.util.Arrays
+import org.iot.codegenerator.codeGenerator.Or
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.SensorData
+import org.iot.codegenerator.codeGenerator.Unequal
+import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.DataID
-import org.iot.codegenerator.codeGenerator.OutputDefinition
-import org.iot.codegenerator.codeGenerator.Transformation
 
 /**
  * This class contains custom validation rules. 
@@ -89,12 +87,12 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 //			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
 //		}	
 //	}
-	
 	@Check
-	def validateLanguage(Language lang){
+	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
-		if (!approved.contains(lang.name)){
-			error('''no support for language �lang.name�, only "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name);
+		if (!approved.contains(lang.name)) {
+			error('''no support for language �lang.name�, only "python" and "cplusplus"''',
+				CodeGeneratorPackage.eINSTANCE.language_Name);
 		}
 	}
 
@@ -109,21 +107,23 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 //		}
 //
 //	}
-
+	/**
+	 * Checks if the SensorData is used in either the cloud or fog (TransformationData). If not used in either, an warning is issued at the SensorData
+	 */
 	@Check
-	def validateUsageOfdataDeclaration(DataID dataid) {
-		val outputDef = dataid.eContainer.getContainerOfType(OutputDefinition)
-		switch (outputDef) {
-			Data:
-				if (!outputDef.outputs.exists[it.dataId === dataid]) {
-					warning('''Unused variable''', CodeGeneratorPackage.Literals.DATA_ID__NAME,UNUSED_VARIABLE)
-					
-				}
-			Transformation:
-				if (!outputDef.outputs.exists[it.entities === dataid]) {
-					warning('''Unused variable''', CodeGeneratorPackage.Literals.DATA_ID__NAME,UNUSED_VARIABLE)
-				}
+	def validateUsageOfdataDeclaration(SensorData data) {
+		val deviceConf = data.eContainer.getContainerOfType(DeviceConf)
+		val fog = deviceConf.fog.last
+		val cloud = deviceConf.cloud.last
+
+		val list = Stream.concat(fog.transformations.stream(), cloud.transformations.stream()).collect(
+			Collectors.toList());
+
+		if (!list.exists[it.name == data.name]) {
+			warning('''Unused variable''', data, CodeGeneratorPackage.Literals.SENSOR_DATA__NAME, UNUSED_VARIABLE)
+			
 		}
+
 	}
 
 	@Check
