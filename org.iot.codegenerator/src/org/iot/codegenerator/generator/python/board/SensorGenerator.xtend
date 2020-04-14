@@ -23,23 +23,23 @@ class SensorGenerator {
 		val classDef = sensor.compileClass(env)
 
 		'''
-			«env.compileImports»
+			Â«env.compileImportsÂ»
 			
-			«classDef»
+			Â«classDefÂ»
 		'''
 	}
 
 	private def String compileClass(Sensor sensor, GeneratorEnvironment env) {
 		// TODO: Only generate testing utilities if we pass a testing flag to the generator
 		'''
-			class «sensor.type.asClass»:
+			class Â«sensor.type.asClassÂ»:
 				
-				«sensor.compileConstructor(env)»
-				«sensor.compileTimerLoop(env)»
-				«sensor.compileSignalHandler(env)»
-				«compileTestUtilities()»
+				Â«sensor.compileConstructor(env)Â»
+				Â«sensor.compileTimerLoop(env)Â»
+				Â«sensor.compileSignalHandler(env)Â»
+				Â«compileTestUtilities()Â»
 			
-			«sensor.compileInterceptors(env)»
+			Â«sensor.compileInterceptors(env)Â»
 		'''
 	}
 
@@ -48,23 +48,23 @@ class SensorGenerator {
 			def __init__(self, sensor):
 				self.sensor = sensor
 				self.variables = {}
-				«IF sensor.isFrequency»
-					self.thread = «env.useImport("thread")».Thread(self.__timer, "Thread«sensor.type.asClass»")
+				Â«IF sensor.isFrequencyÂ»
+					self.thread = Â«env.useImport("thread")Â».Thread(self.__timer, "ThreadÂ«sensor.type.asClassÂ»")
 					self.thread.start()
-				«ENDIF»
+				Â«ENDIFÂ»
 				
 		'''
 	}
 
 	private def String compileTimerLoop(Sensor sensor, GeneratorEnvironment env) {
 		'''
-			«IF sensor.isFrequency»
+			Â«IF sensor.isFrequencyÂ»
 				def __timer(self, thread: thread.Thread):
 					while thread.active:
-						«env.useImport("utime")».sleep(«(sensor.sampler as FrequencySampler).delay»)
-						«sensor.compileSensorSampling(env)»
+						Â«env.useImport("utime")Â».sleep(Â«(sensor.sampler as FrequencySampler).delayÂ»)
+						Â«sensor.compileSensorSampling(env)Â»
 				
-			«ENDIF»
+			Â«ENDIFÂ»
 		'''
 	}
 
@@ -73,10 +73,10 @@ class SensorGenerator {
 			def signal(self, command: str):
 				if command == "kill":
 					self.thread.interrupt()
-				«IF sensor.isSignal»
+				Â«IF sensor.isSignalÂ»
 					elif command == "signal":
-						«sensor.compileSensorSampling(env)»
-				«ENDIF»
+						Â«sensor.compileSensorSampling(env)Â»
+				Â«ENDIFÂ»
 			
 		'''
 	}
@@ -101,41 +101,41 @@ class SensorGenerator {
 
 	private def String compileInterceptors(Sensor sensor, GeneratorEnvironment env) {
 		'''
-			«FOR data : sensor.sensorDatas»
-				«FOR out : data.channelOuts»
-					«out.pipeline.compileInterceptors(env)»
-				«ENDFOR»
-			«ENDFOR»
+			Â«FOR data : sensor.sensorDatasÂ»
+				Â«FOR out : data.channelOutsÂ»
+					Â«out.pipeline.compileInterceptors(env)Â»
+				Â«ENDFORÂ»
+			Â«ENDFORÂ»
 		'''
 	}
 
 	private def String compileInterceptors(Pipeline pipeline, GeneratorEnvironment env) {
 		'''
-			«pipeline.compileInterceptor(env)»
-			«IF pipeline.next !== null»
-				«pipeline.next.compileInterceptors(env)»
-			«ENDIF»
+			Â«pipeline.compileInterceptor(env)Â»
+			Â«IF pipeline.next !== nullÂ»
+				Â«pipeline.next.compileInterceptors(env)Â»
+			Â«ENDIFÂ»
 		'''
 	}
 
 	private def dispatch String compileInterceptor(Filter filter, GeneratorEnvironment env) {
 		'''
-			class «filter.interceptorName»:
-				def handle(self, «filter.source.name.asInstance»):
+			class Â«filter.interceptorNameÂ»:
+				def handle(self, Â«filter.source.name.asInstanceÂ»):
 					print("Filter")  # TODO: Testing
-					_should_continue = «filter.expression.compile»
+					_should_continue = Â«filter.expression.compileÂ»
 					if _should_continue:
-						self.next.handle(«filter.source.name.asInstance»)
+						self.next.handle(Â«filter.source.name.asInstanceÂ»)
 			
 		'''
 	}
 
 	private def dispatch String compileInterceptor(Map map, GeneratorEnvironment env) {
 		'''
-			class «map.interceptorName»:
-				def handle(self, «map.source.name.asInstance»):
+			class Â«map.interceptorNameÂ»:
+				def handle(self, Â«map.source.name.asInstanceÂ»):
 					print("Map")  # TODO: Testing
-					_newValue = «map.expression.compile»
+					_newValue = Â«map.expression.compileÂ»
 					self.next.handle(_newValue)
 			
 		'''
@@ -143,15 +143,15 @@ class SensorGenerator {
 
 	private def dispatch String compileInterceptor(Window window, GeneratorEnvironment env) {
 		'''
-			class «window.interceptorName»:
+			class Â«window.interceptorNameÂ»:
 				def __init__(self, next: Interceptor):
 					super().__init__(next)
 					self._buffer = []
 				
-				def handle(self, «window.source.name.asInstance»):
+				def handle(self, Â«window.source.name.asInstanceÂ»):
 					print("Window")  # TODO: Testing
-					self._buffer.append(«window.source.name.asInstance»)
-					if len(self._buffer) == «window.width»:
+					self._buffer.append(Â«window.source.name.asInstanceÂ»)
+					if len(self._buffer) == Â«window.widthÂ»:
 						_result =  # TODO: Unsupported
 						self._buffer = []
 						self.next.handle(_result)

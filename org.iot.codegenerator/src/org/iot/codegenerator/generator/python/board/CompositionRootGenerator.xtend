@@ -21,9 +21,9 @@ class CompositionRootGenerator {
 		val classDef = board.compileClass(env)
 
 		'''
-			«env.compileImports»
+			Â«env.compileImportsÂ»
 			
-			«classDef»
+			Â«classDefÂ»
 		'''
 	}
 
@@ -35,12 +35,12 @@ class CompositionRootGenerator {
 		'''
 			class CompositionRoot:
 				
-				«board.compileConstructor(env)»
-				«boardProvider»
-				«sensorProviders»
-				«pipelineProviders»
-				«board.compileChannelProviders(env)»
-				«compileMakeChannel(env)»
+				Â«board.compileConstructor(env)Â»
+				Â«boardProviderÂ»
+				Â«sensorProvidersÂ»
+				Â«pipelineProvidersÂ»
+				Â«board.compileChannelProviders(env)Â»
+				Â«compileMakeChannel(env)Â»
 		'''
 	}
 
@@ -49,9 +49,9 @@ class CompositionRootGenerator {
 
 		'''
 			def __init__(self):
-				«FOR channel : env.channels»
-					self.«channel.name.asInstance» = None
-				«ENDFOR»
+				Â«FOR channel : env.channelsÂ»
+					self.Â«channel.name.asInstanceÂ» = None
+				Â«ENDFORÂ»
 				
 				with open("conf-filled.json", "r") as _conf_file:
 					self.configuration = ujson.loads("".join(_conf_file.readlines()))
@@ -61,46 +61,46 @@ class CompositionRootGenerator {
 
 	private def String compileBoardProvider(Board board, GeneratorEnvironment env) {
 		'''
-			def «board.providerName»(self):
-				«board.name.asInstance» = «env.useImport(board.name.asModule, board.name.asClass)»()
-				«FOR sensor : board.sensors»
-					«board.name.asInstance».add_sensor("«sensor.type.asModule»", self.«sensor.providerName»())
-				«ENDFOR»
-				«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())
-				«FOR channel : env.channels.filter[it != board.input]»
-					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
-				«ENDFOR»
+			def Â«board.providerNameÂ»(self):
+				Â«board.name.asInstanceÂ» = Â«env.useImport(board.name.asModule, board.name.asClass)Â»()
+				Â«FOR sensor : board.sensorsÂ»
+					Â«board.name.asInstanceÂ».add_sensor("Â«sensor.type.asModuleÂ»", self.Â«sensor.providerNameÂ»())
+				Â«ENDFORÂ»
+				Â«board.name.asInstanceÂ».set_input_channel(self.Â«env.useChannel(board.input).providerNameÂ»())
+				Â«FOR channel : env.channels.filter[it != board.input]Â»
+					Â«board.name.asInstanceÂ».add_output_channel(self.Â«channel.providerNameÂ»())
+				Â«ENDFORÂ»
 			
 		'''
 	}
 
 	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR sensor : board.sensors»
-				def «sensor.providerName»(self):
-					«sensor.type.asInstance» = «env.useImport(sensor.type.asModule)».«sensor.type.asClass»(self.provide_driver_)  # TODO: Cannot determine driver yet
-					«FOR data : sensor.sensorDatas»
-						«FOR out : data.outputs»
-							«sensor.type.asInstance».add_pipeline("«data.name.asModule»", self.«out.providerName»())
-						«ENDFOR»
-					«ENDFOR»
-					return «sensor.type.asInstance»
+			Â«FOR sensor : board.sensorsÂ»
+				def Â«sensor.providerNameÂ»(self):
+					Â«sensor.type.asInstanceÂ» = Â«env.useImport(sensor.type.asModule)Â».Â«sensor.type.asClassÂ»(self.provide_driver_)  # TODO: Cannot determine driver yet
+					Â«FOR data : sensor.sensorDatasÂ»
+						Â«FOR out : data.outputsÂ»
+							Â«sensor.type.asInstanceÂ».add_pipeline("Â«data.name.asModuleÂ»", self.Â«out.providerNameÂ»())
+						Â«ENDFORÂ»
+					Â«ENDFORÂ»
+					return Â«sensor.type.asInstanceÂ»
 				
-			«ENDFOR»
+			Â«ENDFORÂ»
 		'''
 	}
 
 	// TODO: Driver provider
 	private def String compilePipelineProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR sensor : board.sensors»
-				«FOR data : sensor.sensorDatas»
-					«FOR out : data.outputs»
-						«out.compilePipelineProvider(env)»
+			Â«FOR sensor : board.sensorsÂ»
+				Â«FOR data : sensor.sensorDatasÂ»
+					Â«FOR out : data.outputsÂ»
+						Â«out.compilePipelineProvider(env)Â»
 						
-					«ENDFOR»
-				«ENDFOR»
-			«ENDFOR»
+					Â«ENDFORÂ»
+				Â«ENDFORÂ»
+			Â«ENDFORÂ»
 		'''
 	}
 
@@ -110,15 +110,15 @@ class CompositionRootGenerator {
 
 		val sink = '''
 		type('Sink', (object,), {
-			"handle": lambda data: «out.channel.name.asInstance».send(struct.pack("f", data)),  #TODO: Handle data type conversion
+			"handle": lambda data: Â«out.channel.name.asInstanceÂ».send(struct.pack("f", data)),  #TODO: Handle data type conversion
 			"next": None
 		})'''
 
 		'''
-			def «out.providerName»(self):
-				«env.useChannel(out.channel).name.asInstance» = self.«out.channel.providerName»()
+			def Â«out.providerNameÂ»(self):
+				Â«env.useChannel(out.channel).name.asInstanceÂ» = self.Â«out.channel.providerNameÂ»()
 				return Pipeline(
-					«out.pipeline.compilePipelineComposition(sink, env)»
+					Â«out.pipeline.compilePipelineComposition(sink, env)Â»
 				)
 		'''
 	}
@@ -129,15 +129,15 @@ class CompositionRootGenerator {
 		val interceptorName = pipeline.interceptorName
 		
 		'''
-		«env.useImport(sensorName.asModule)».«interceptorName»(
-			«inner»
+		Â«env.useImport(sensorName.asModule)Â».Â«interceptorNameÂ»(
+			Â«innerÂ»
 		)
 		'''
 	}
 
 	private def dispatch String compilePipelineProvider(ScreenOut out, GeneratorEnvironment env) {
 		'''
-			def «out.providerName»(self):
+			def Â«out.providerNameÂ»(self):
 				# TODO: Unsupported
 				return None
 		'''
@@ -145,13 +145,13 @@ class CompositionRootGenerator {
 
 	private def String compileChannelProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR channel : env.channels»
-				def «channel.providerName»(self):
-					if not self.«channel.name.asInstance»:
-						self.«channel.name.asInstance» = self.make_channel("«channel.name»")
-					return self.«channel.name.asInstance»
+			Â«FOR channel : env.channelsÂ»
+				def Â«channel.providerNameÂ»(self):
+					if not self.Â«channel.name.asInstanceÂ»:
+						self.Â«channel.name.asInstanceÂ» = self.make_channel("Â«channel.nameÂ»")
+					return self.Â«channel.name.asInstanceÂ»
 				
-			«ENDFOR»
+			Â«ENDFORÂ»
 		'''
 	}
 
@@ -178,15 +178,15 @@ class CompositionRootGenerator {
 	 * Utility extension methods
 	 */
 	private def String providerName(Board board) {
-		'''provide_«board.name.asModule»'''
+		'''provide_Â«board.name.asModuleÂ»'''
 	}
 
 	private def String providerName(Sensor sensor) {
-		'''provide_sensor_«sensor.type.asModule»'''
+		'''provide_sensor_Â«sensor.type.asModuleÂ»'''
 	}
 
 	private def String providerName(Channel channel) {
-		'''provide_channel_«channel.name.asModule»'''
+		'''provide_channel_Â«channel.name.asModuleÂ»'''
 	}
 
 	private def String providerName(SensorDataOut out) {
@@ -196,6 +196,6 @@ class CompositionRootGenerator {
 			it != out
 		].size + 1
 
-		'''provide_pipeline_«sensor.type.asModule»_«data.name.asModule»_«index»'''
+		'''provide_pipeline_Â«sensor.type.asModuleÂ»_Â«data.name.asModuleÂ»_Â«indexÂ»'''
 	}
 }

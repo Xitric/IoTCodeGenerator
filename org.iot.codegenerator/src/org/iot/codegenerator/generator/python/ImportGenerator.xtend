@@ -11,29 +11,29 @@ class ImportGenerator {
 
 	static def String compileImports(GeneratorEnvironment env) {
 		'''
-			«FOR module : env.definitionImports»
-				«module.compileDefinitionImport(env.getDefinitionsFor(module))»
-			«ENDFOR»
-			«FOR module : env.moduleImports»
-				«module.compileModuleImport»
-			«ENDFOR»
+			Â«FOR module : env.definitionImportsÂ»
+				Â«module.compileDefinitionImport(env.getDefinitionsFor(module))Â»
+			Â«ENDFORÂ»
+			Â«FOR module : env.moduleImportsÂ»
+				Â«module.compileModuleImportÂ»
+			Â«ENDFORÂ»
 		'''
 	}
 	
 	static def String compileDefinitionImport(String module, Iterable<String> definitions) {
-		'''from «module» import «FOR definition : definitions SEPARATOR ", "»«definition»«ENDFOR»'''
+		'''from Â«moduleÂ» import Â«FOR definition : definitions SEPARATOR ", "Â»Â«definitionÂ»Â«ENDFORÂ»'''
 	}
 
 	static def String compileModuleImport(String module) {
 		if (importFallbacks.containsKey(module)) {
 			'''
 				try:
-				    import «module»
+				    import Â«moduleÂ»
 				except ModuleNotFoundError:
-				    import «importFallbacks.get(module)» as «module»
+				    import Â«importFallbacks.get(module)Â» as Â«moduleÂ»
 			'''
 		} else {
-			'''import «module»'''
+			'''import Â«moduleÂ»'''
 		}
 	}
 }

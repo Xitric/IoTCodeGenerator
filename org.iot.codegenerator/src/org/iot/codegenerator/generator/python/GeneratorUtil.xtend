@@ -15,7 +15,7 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 class GeneratorUtil {
 
 	static def String asInstance(String name) {
-		'''_«name»'''
+		'''_Â«nameÂ»'''
 	}
 	
 	static def String asModule(String name) {
@@ -56,6 +56,6 @@ class GeneratorUtil {
 			it != pipeline
 		].size + 1
 
-		'''Interceptor«type»«index»'''
+		'''InterceptorÂ«typeÂ»Â«indexÂ»'''
 	}
 }
