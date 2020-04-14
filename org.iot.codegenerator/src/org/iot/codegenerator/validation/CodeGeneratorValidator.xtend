@@ -43,20 +43,12 @@ import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
-
-import org.iot.codegenerator.codeGenerator.SensorDataOut
-import org.iot.codegenerator.codeGenerator.ChannelOut
-import java.util.List
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.Provider
 import static extension org.eclipse.xtext.EcoreUtil2.*
 
 import org.iot.codegenerator.codeGenerator.Unequal
-import org.iot.codegenerator.codeGenerator.Variable
-import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.OnbSensor
@@ -137,7 +129,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)) {
-			error('''no support for language �lang.name�, only "python" and "cplusplus"''',
+			error('''no support for language «lang.name», only "python" and "cplusplus"''',
 				CodeGeneratorPackage.eINSTANCE.language_Name)
 		} else {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
@@ -159,7 +151,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Data> dataSet : dataNameValues.values) {
 			if (dataSet.size > 1) {
 				for (data : dataSet) {
-					error('''duplicate '�data.name�' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+					error('''duplicate «data.name»''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
 				}
 			}
 		}
@@ -215,7 +207,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Variable> variableSet : variableNameValues.values) {
 			if (variableSet.size > 1) {
 				for (variable : variableSet) {
-					error('''duplicate '�variable.name�' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+					error('''duplicate «variable.name»''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 				}
 			}
 		}
@@ -241,7 +233,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(TransformationOut transformationOut: transformationOuts){
 				val currentPipelineType = transformationOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected �firstPipelineType� got �currentPipelineType�''',
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
 						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
 					)
 				}
@@ -255,7 +247,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected �firstPipelineType� got �currentPipelineType�''',
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
 						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
 					)
 				}
@@ -297,13 +289,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected �expected� got �actual�''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got �type�''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 
