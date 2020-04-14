@@ -103,7 +103,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (b === null) {
 			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
 		} else {
-			info('''Â«b.getVersion()Â» supports the following sensors: Â«b.getSensors()Â»''',
+			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
 				CodeGeneratorPackage.eINSTANCE.board_Name)
 		}
 	}
@@ -135,7 +135,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)) {
-			error('''no support for language Â«lang.nameÂ», only "python" and "cplusplus"''',
+			error('''no support for language «lang.name», only "python" and "cplusplus"''',
 				CodeGeneratorPackage.eINSTANCE.language_Name)
 		} else {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
@@ -167,7 +167,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Data> dataSet : dataNameValues.values) {
 			if (dataSet.size > 1) {
 				for (data : dataSet) {
-					error('''duplicate 'Â«data.nameÂ»' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+					error('''duplicate '«data.name»' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
 				}
 			}
 		}
@@ -223,7 +223,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Variable> variableSet : variableNameValues.values) {
 			if (variableSet.size > 1) {
 				for (variable : variableSet) {
-					error('''duplicate 'Â«variable.nameÂ»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+					error('''duplicate '«variable.name»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 				}
 			}
 		}
@@ -246,13 +246,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got Â«typeÂ»''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 	
@@ -273,7 +273,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(TransformationOut transformationOut: transformationOuts){
 				val currentPipelineType = transformationOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected Â«firstPipelineTypeÂ» got Â«currentPipelineTypeÂ»''',
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
 						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
 					)
 				}
@@ -287,7 +287,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected Â«firstPipelineTypeÂ» got Â«currentPipelineTypeÂ»''',
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
 						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
 					)
 				}

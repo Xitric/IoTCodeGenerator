@@ -64,7 +64,7 @@ class CompositionRootGenerator {
 			def «board.providerName»(self):
 				«board.name.asInstance» = «env.useImport(board.name.asModule, board.name.asClass)»()
 				«FOR sensor : board.sensors»
-					«board.name.asInstance».add_sensor("«sensor.name.asModule»", self.«sensor.providerName»())
+					«board.name.asInstance».add_sensor("«sensor.type.asModule»", self.«sensor.providerName»())
 				«ENDFOR»
 				«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())
 				«FOR channel : env.channels.filter[it != board.input]»
@@ -78,13 +78,13 @@ class CompositionRootGenerator {
 		'''
 			«FOR sensor : board.sensors»
 				def «sensor.providerName»(self):
-					«sensor.name.asInstance» = «env.useImport(sensor.name.asModule)».«sensor.name.asClass»(self.provide_driver_)  # TODO: Cannot determine driver yet
+					«sensor.type.asInstance» = «env.useImport(sensor.type.asModule)».«sensor.type.asClass»(self.provide_driver_)  # TODO: Cannot determine driver yet
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
-							«sensor.name.asInstance».add_pipeline("«data.name.asModule»", self.«out.providerName»())
+							«sensor.type.asInstance».add_pipeline("«data.name.asModule»", self.«out.providerName»())
 						«ENDFOR»
 					«ENDFOR»
-					return «sensor.name.asInstance»
+					return «sensor.type.asInstance»
 				
 			«ENDFOR»
 		'''
@@ -125,7 +125,7 @@ class CompositionRootGenerator {
 
 	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment env) {
 		val inner = pipeline.next === null ? sink : pipeline.next.compilePipelineComposition(sink, env)
-		val sensorName = pipeline.getContainerOfType(Sensor).name
+		val sensorName = pipeline.getContainerOfType(Sensor).type
 		val interceptorName = pipeline.interceptorName
 		
 		'''
@@ -182,7 +182,7 @@ class CompositionRootGenerator {
 	}
 
 	private def String providerName(Sensor sensor) {
-		'''provide_sensor_«sensor.name.asModule»'''
+		'''provide_sensor_«sensor.type.asModule»'''
 	}
 
 	private def String providerName(Channel channel) {
@@ -196,6 +196,6 @@ class CompositionRootGenerator {
 			it != out
 		].size + 1
 
-		'''provide_pipeline_«sensor.name.asModule»_«data.name.asModule»_«index»'''
+		'''provide_pipeline_«sensor.type.asModule»_«data.name.asModule»_«index»'''
 	}
 }
