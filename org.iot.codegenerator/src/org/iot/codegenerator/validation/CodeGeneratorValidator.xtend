@@ -234,13 +234,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected �expected� got �actual�''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got �type�''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 

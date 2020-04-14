@@ -32,11 +32,11 @@ Sensor:
 ;
 
 ExtSensor:
-	name=ID '('pins+=INT (',' pins+=INT)* ')'
+	type=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
-	name=ID
+	type=ID
 ;
 
 Variables:
