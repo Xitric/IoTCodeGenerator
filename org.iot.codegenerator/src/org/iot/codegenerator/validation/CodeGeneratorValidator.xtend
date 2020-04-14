@@ -106,7 +106,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
-	
+	 
 	@Check
 	def validateOnboardSensor(Sensor sensor) {
 		
