@@ -8,18 +8,19 @@ import com.google.inject.Inject
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.HashMap
+import java.util.List
 import java.util.Set
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
+import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Div
-import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Equal
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Filter
@@ -33,18 +34,16 @@ import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.Or
-import org.iot.codegenerator.codeGenerator.Plus
-import org.iot.codegenerator.codeGenerator.Sensor
-import org.iot.codegenerator.codeGenerator.Transformation
-import org.iot.codegenerator.codeGenerator.Unequal
-import org.iot.codegenerator.typing.TypeChecker
-
-
-import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Pipeline
-import org.iot.codegenerator.codeGenerator.TransformationData
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Provider
+import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
+import org.iot.codegenerator.codeGenerator.SensorDataOut
+import org.iot.codegenerator.codeGenerator.Transformation
+import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
+
 import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.ChannelOut
 import java.util.List
@@ -53,6 +52,15 @@ import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Provider
 import static extension org.eclipse.xtext.EcoreUtil2.*
+
+import org.iot.codegenerator.codeGenerator.Unequal
+import org.iot.codegenerator.codeGenerator.Variable
+import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.codeGenerator.WindowPipeline
+import org.iot.codegenerator.typing.TypeChecker
+import org.eclipse.xtext.validation.CheckType
+import org.iot.codegenerator.codeGenerator.OnbSensor
+
 /**
  * This class contains custom validation rules. 
  * 
@@ -66,32 +74,32 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	@Inject
 	extension TypeChecker
 
-	@Check
+	@Check(CheckType.NORMAL)
 	def checkDeviceConfiguration(DeviceConf configuration) {
 		val boards = configuration.board
 
 		if (boards.size() < 1) {
-			warning('''there should be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
+			error('''There must be a board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
 			return
 		} else if (boards.size() > 1) {
-			error('''there must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
+			error('''There must be exactly 1 board definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Board)
 			return
 		}
 
 		val clouds = configuration.cloud
 
 		if (clouds.size() < 1) {
-			warning('''there should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
+			warning('''There should be a cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
 			return
 		} else if (clouds.size() > 1) {
-			error('''there must be exactly 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
+			error('''There must be at most 1 cloud definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Cloud)
 			return
 		}
 
 		val fogs = configuration.fog
 
 		if (fogs.size() > 1) {
-			error('''there must at maximum be 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
+			error('''There must be at most 1 fog definition''', CodeGeneratorPackage.eINSTANCE.deviceConf_Fog)
 			return
 		}
 	}
@@ -102,8 +110,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (b === null) {
 			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
 		} else {
-			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
-				CodeGeneratorPackage.eINSTANCE.board_Version)
+			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''', CodeGeneratorPackage.eINSTANCE.board_Name)
+			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''', CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
 	 
@@ -129,7 +137,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)) {
-			error('''no support for language «lang.name», only "python" and "cplusplus"''',
+			error('''no support for language �lang.name�, only "python" and "cplusplus"''',
 				CodeGeneratorPackage.eINSTANCE.language_Name)
 		} else {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
@@ -151,7 +159,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Data> dataSet : dataNameValues.values) {
 			if (dataSet.size > 1) {
 				for (data : dataSet) {
-					error('''duplicate '«data.name»' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+					error('''duplicate '�data.name�' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
 				}
 			}
 		}
@@ -207,7 +215,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Variable> variableSet : variableNameValues.values) {
 			if (variableSet.size > 1) {
 				for (variable : variableSet) {
-					error('''duplicate '«variable.name»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+					error('''duplicate '�variable.name�' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 				}
 			}
 		}
@@ -221,35 +229,11 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
 		}
 	}
-
-	@Check
-	def validateFilterExpression(Filter filter) {
-		filter.expression.type.validateTypes(TypeChecker.Type.BOOLEAN,
-			CodeGeneratorPackage.Literals.TUPLE_PIPELINE__EXPRESSION)
-	}
-
-	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
-		if (expected != actual) {
-			error('''expected «expected» got «actual»''', error)
-		}
-	}
-
-	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
-		if (!type.isNumberType) {
-			error('''expected number got «type»''', error)
-		}
-	}
 	
 	@Check
 	def validateDataOut(Variables variables){
 		variables.cacheVariables
 	} 
-	
-	def checkWindowPipeline(Pipeline pipeline){
-		if (pipeline instanceof WindowPipeline){
-			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
-		}
-	}
 
 	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
 		if (transformationOuts.size >1){
@@ -257,7 +241,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(TransformationOut transformationOut: transformationOuts){
 				val currentPipelineType = transformationOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
+					error('''expected �firstPipelineType� got �currentPipelineType�''',
 						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
 					)
 				}
@@ -271,29 +255,37 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
+					error('''expected �firstPipelineType� got �currentPipelineType�''',
 						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
 					)
 				}
 			}
 		}
-	} 
+	}
+	
+	def checkWindowPipeline(Pipeline pipeline) {
+		if (pipeline instanceof WindowPipeline) {
+			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+		}
+	}
 	
 	@Check
 	def validatePipelineOutputs(Data data){
-		if (data instanceof TransformationData){
+		if (data instanceof TransformationData) {
 			var transformationOuts = new ArrayList<TransformationOut>
 			val transformationDataOutputs = (data as TransformationData).outputs
-			for (TransformationOut transformationOut : transformationDataOutputs){
+			
+			for (TransformationOut transformationOut : transformationDataOutputs) {
 				transformationOuts.add(transformationOut)
 				checkWindowPipeline(transformationOut.pipeline)
 			}
 			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
-		} else if (data instanceof SensorData){
+		} else if (data instanceof SensorData) {
 			var channelOuts = new ArrayList<ChannelOut>
-			val sensorData = data as SensorData
-			for(SensorDataOut sensorDataOut : sensorData.outputs ){
-				if (sensorDataOut instanceof ChannelOut){
+			val sensorDataOutputs = (data as SensorData).outputs
+			
+			for(SensorDataOut sensorDataOut : sensorDataOutputs) {
+				if (sensorDataOut instanceof ChannelOut) {
 					val channelOut = sensorDataOut as ChannelOut
 					channelOuts.add(channelOut)
 					checkWindowPipeline(channelOut.pipeline)
@@ -301,6 +293,24 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			}
 			checkSameTypeOfChannelOutPipelines(channelOuts)
 		}	
+	}
+	
+	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
+		if (expected != actual) {
+			error('''expected �expected� got �actual�''', error)
+		}
+	}
+
+	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
+		if (!type.isNumberType) {
+			error('''expected number got �type�''', error)
+		}
+	}
+
+	@Check
+	def validateFilterExpression(Filter filter) {
+		filter.expression.type.validateTypes(TypeChecker.Type.BOOLEAN,
+			CodeGeneratorPackage.Literals.TUPLE_PIPELINE__EXPRESSION)
 	}
 
 	@Check
