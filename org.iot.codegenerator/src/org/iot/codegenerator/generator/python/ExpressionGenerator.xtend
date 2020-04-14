@@ -23,6 +23,7 @@ import org.iot.codegenerator.codeGenerator.StringLiteral
 import org.iot.codegenerator.codeGenerator.Unequal
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
 class ExpressionGenerator {
 
@@ -101,7 +102,7 @@ class ExpressionGenerator {
 	static def dispatch String compile(Reference reference){
 		val sensor = reference.getContainerOfType(Sensor)
 		val sensorName = sensor.variables.name
-		'''«sensorName».«reference.variable.name»'''
+		'''«sensorName.asInstance».«reference.variable.name»'''
 		
 	}
 	

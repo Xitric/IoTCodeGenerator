@@ -71,10 +71,12 @@ class SensorGenerator {
 	private def String compileSignalHandler(Sensor sensor, GeneratorEnvironment env) {
 		'''
 			def signal(self, command: str):
-				if command == "kill":
-					self.thread.interrupt()
+				«IF sensor.isFrequency»
+					if command == "kill":
+						self.thread.interrupt()
+				«ENDIF»
 				«IF sensor.isSignal»
-					elif command == "signal":
+					«IF sensor.isFrequency»el«ENDIF»if command == "signal":
 						«sensor.compileSensorSampling(env)»
 				«ENDIF»
 			
@@ -82,7 +84,10 @@ class SensorGenerator {
 	}
 
 	private def String compileSensorSampling(Sensor sensor, GeneratorEnvironment env) {
-		'''# TODO: Unsupported'''
+		'''
+		# TODO: Unsupported
+		pass
+		'''
 	}
 
 	private def String compileTestUtilities() {
@@ -120,7 +125,7 @@ class SensorGenerator {
 
 	private def dispatch String compileInterceptor(Filter filter, GeneratorEnvironment env) {
 		'''
-			class «filter.interceptorName»:
+			class «filter.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 				def handle(self, «filter.source.name.asInstance»):
 					print("Filter")
 					_should_continue = «filter.expression.compile»
@@ -132,7 +137,7 @@ class SensorGenerator {
 
 	private def dispatch String compileInterceptor(Map map, GeneratorEnvironment env) {
 		'''
-			class «map.interceptorName»:
+			class «map.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 				def handle(self, «map.source.name.asInstance»):
 					print("Map")
 					_newValue = «map.expression.compile»
@@ -143,7 +148,7 @@ class SensorGenerator {
 
 	private def dispatch String compileInterceptor(Window window, GeneratorEnvironment env) {
 		'''
-			class «window.interceptorName»:
+			class «window.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 				def __init__(self, next: Interceptor):
 					super().__init__(next)
 					self._buffer = []
@@ -152,7 +157,7 @@ class SensorGenerator {
 					print("Window")
 					self._buffer.append(«window.source.name.asInstance»)
 					if len(self._buffer) == «window.width»:
-						_result =  # TODO: Unsupported
+						_result = None # TODO: Unsupported
 						self._buffer = []
 						self.next.handle(_result)
 			
