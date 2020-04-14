@@ -8,18 +8,19 @@ import com.google.inject.Inject
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.HashMap
+import java.util.List
 import java.util.Set
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
+import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.CodeGeneratorPackage
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Div
-import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Equal
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Filter
@@ -33,26 +34,20 @@ import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.Or
-import org.iot.codegenerator.codeGenerator.Plus
-import org.iot.codegenerator.codeGenerator.Sensor
-import org.iot.codegenerator.codeGenerator.Transformation
-import org.iot.codegenerator.codeGenerator.Unequal
-import org.iot.codegenerator.typing.TypeChecker
-
-import static extension org.eclipse.xtext.EcoreUtil2.*
-import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Pipeline
-import org.iot.codegenerator.codeGenerator.TransformationData
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Provider
+import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
-import org.iot.codegenerator.codeGenerator.TransformationOut
 import org.iot.codegenerator.codeGenerator.SensorDataOut
-import org.iot.codegenerator.codeGenerator.ChannelOut
-import java.util.ArrayList
-import java.util.List
-import org.iot.codegenerator.codeGenerator.WindowPipeline
+import org.iot.codegenerator.codeGenerator.Transformation
+import org.iot.codegenerator.codeGenerator.TransformationData
+import org.iot.codegenerator.codeGenerator.TransformationOut
+import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.Provider
+import org.iot.codegenerator.codeGenerator.WindowPipeline
+import org.iot.codegenerator.typing.TypeChecker
 
 /**
  * This class contains custom validation rules. 
@@ -103,7 +98,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (b === null) {
 			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
 		} else {
-			info('''Â«b.getVersion()Â» supports the following sensors: Â«b.getSensors()Â»''',
+			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
 				CodeGeneratorPackage.eINSTANCE.board_Name)
 		}
 	}
@@ -135,7 +130,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)) {
-			error('''no support for language Â«lang.nameÂ», only "python" and "cplusplus"''',
+			error('''no support for language «lang.name», only "python" and "cplusplus"''',
 				CodeGeneratorPackage.eINSTANCE.language_Name)
 		} else {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
@@ -167,7 +162,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Data> dataSet : dataNameValues.values) {
 			if (dataSet.size > 1) {
 				for (data : dataSet) {
-					error('''duplicate 'Â«data.nameÂ»' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
+					error('''duplicate '«data.name»' ''', data, CodeGeneratorPackage.eINSTANCE.data_Name)
 				}
 			}
 		}
@@ -223,7 +218,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		for (Set<Variable> variableSet : variableNameValues.values) {
 			if (variableSet.size > 1) {
 				for (variable : variableSet) {
-					error('''duplicate 'Â«variable.nameÂ»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
+					error('''duplicate '«variable.name»' ''', variable, CodeGeneratorPackage.eINSTANCE.variable_Name)
 				}
 			}
 		}
@@ -246,13 +241,13 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def validateTypes(TypeChecker.Type actual, TypeChecker.Type expected, EStructuralFeature error) {
 		if (expected != actual) {
-			error('''expected Â«expectedÂ» got Â«actualÂ»''', error)
+			error('''expected «expected» got «actual»''', error)
 		}
 	}
 
 	def validateNumbers(TypeChecker.Type type, EStructuralFeature error) {
 		if (!type.isNumberType) {
-			error('''expected number got Â«typeÂ»''', error)
+			error('''expected number got «type»''', error)
 		}
 	}
 	
@@ -273,7 +268,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(TransformationOut transformationOut: transformationOuts){
 				val currentPipelineType = transformationOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected Â«firstPipelineTypeÂ» got Â«currentPipelineTypeÂ»''',
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
 						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
 					)
 				}
@@ -287,7 +282,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
 				if (firstPipelineType !== currentPipelineType){
-					error('''expected Â«firstPipelineTypeÂ» got Â«currentPipelineTypeÂ»''',
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
 						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
 					)
 				}
