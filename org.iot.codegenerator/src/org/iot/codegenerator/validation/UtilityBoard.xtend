@@ -33,6 +33,7 @@ abstract class GenericBoard {
 	
 	def String getVersion()
 	def List<String> getSensors()
+	def int getVariables(String s)
 	override String toString()
 			
 }

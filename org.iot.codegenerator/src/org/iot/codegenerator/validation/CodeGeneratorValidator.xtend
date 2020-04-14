@@ -92,7 +92,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
 		} else {
 			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''',
-				CodeGeneratorPackage.eINSTANCE.board_Name)
+				CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
 
@@ -129,16 +129,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			info('''generator supports "python" and "cplusplus"''', CodeGeneratorPackage.eINSTANCE.language_Name)
 		}
 	}
-
-// TODO: Fixme	
-//	@Check
-//	def validateSource(Data data) {
-//	switch (data.eContainer) {
-//		ExtSensor case data.input instanceof I2C:
-//			error('''expected pin got i2c''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_I2C)
-//		OnbSensor case data.input instanceof Pin:
-//			error('''expected i2c got pin''', CodeGeneratorPackage.Literals.OUTPUT_DEFINITION__INPUT, INCORRECT_INPUT_TYPE_PIN)
-//	}
 
 	def checkNoDuplicateDataName(List<Data> datas) {
 		val dataNameValues = new HashMap<String, Set<Data>>

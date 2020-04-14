@@ -26,7 +26,7 @@ class ESP32 extends GenericBoard {
 		}
 	}
 	
-	def getVariables(String s){
+	override int getVariables(String s){
 		var i = sensors.indexOf(s)
 		return variables.get(i)
 	}
