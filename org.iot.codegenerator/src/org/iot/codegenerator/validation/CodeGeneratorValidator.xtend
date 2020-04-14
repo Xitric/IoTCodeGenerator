@@ -19,6 +19,7 @@ import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Div
+import org.iot.codegenerator.codeGenerator.Data
 import org.iot.codegenerator.codeGenerator.Equal
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Filter
@@ -37,7 +38,18 @@ import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.typing.TypeChecker
+
+
+import org.iot.codegenerator.codeGenerator.OnbSensor
+import org.iot.codegenerator.codeGenerator.Pipeline
+import org.iot.codegenerator.codeGenerator.TransformationData
+import org.iot.codegenerator.codeGenerator.SensorData
+import org.iot.codegenerator.codeGenerator.TransformationOut
+import org.iot.codegenerator.codeGenerator.SensorDataOut
+import org.iot.codegenerator.codeGenerator.ChannelOut
+import java.util.ArrayList
 import java.util.List
+import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Provider
@@ -95,31 +107,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
-
-// TODO: Fixme	
-//	@Check
-//	def validatePinsMatchesVars(Pin pin){
-//		if (pin.ids.size() < pin.vars.ids.size()){
-//			error('''exprects �pin.vars.ids.size()� pin inputs, got �pin.ids.size()�''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-//		} else if (pin.ids.size() > pin.vars.ids.size()){
-//			info('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.pin_Ids)
-//		}	
-//	} 
-//	@Check
-//	def validatePinsMatchesVars(Variables variables){
-//		val sensor = variables.getContainerOfType(Sensor)
-//		switch(sensor) {
-//			ExtSensor:
-//				if (sensor.pins.size() < variables.ids.size()) {
-//					error('''expected �sensor.pins.size()� pin inputs, got �variables.ids.size()�''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
-//				} else if (sensor.pins.size() > variables.ids.size()) {
-//					warning('''number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
-//				}
-//			OnbSensor:
-//				//TODO: Check keyword expectations
-//		}
-//	}
-	@Check
+	
+	@Check 
 	def validateLanguage(Language lang) {
 		var approved = Arrays.asList("python", "cplusplus")
 		if (!approved.contains(lang.name)) {
@@ -232,6 +221,69 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		if (!type.isNumberType) {
 			error('''expected number got «type»''', error)
 		}
+	}
+	
+	@Check
+	def validateDataOut(Variables variables){
+		variables.cacheVariables
+	} 
+	
+	def checkWindowPipeline(Pipeline pipeline){
+		if (pipeline instanceof WindowPipeline){
+			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
+		}
+	}
+
+	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
+		if (transformationOuts.size >1){
+			val firstPipelineType = transformationOuts.get(0).pipeline.lastType
+			for(TransformationOut transformationOut: transformationOuts){
+				val currentPipelineType = transformationOut.pipeline.lastType
+				if (firstPipelineType !== currentPipelineType){
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
+						transformationOut, CodeGeneratorPackage.eINSTANCE.transformationOut_Pipeline
+					)
+				}
+			}
+		}
+	} 
+	
+	def checkSameTypeOfChannelOutPipelines(List<ChannelOut> channelOuts){
+		if (channelOuts.size >1){
+			val firstPipelineType = channelOuts.get(0).pipeline.lastType
+			for(ChannelOut channelOut: channelOuts){
+				val currentPipelineType = channelOut.pipeline.lastType
+				if (firstPipelineType !== currentPipelineType){
+					error('''expected «firstPipelineType» got «currentPipelineType»''',
+						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
+					)
+				}
+			}
+		}
+	} 
+	
+	@Check
+	def validatePipelineOutputs(Data data){
+		if (data instanceof TransformationData){
+			var transformationOuts = new ArrayList<TransformationOut>
+			val transformationDataOutputs = (data as TransformationData).outputs
+			for (TransformationOut transformationOut : transformationDataOutputs){
+				transformationOuts.add(transformationOut)
+				checkWindowPipeline(transformationOut.pipeline)
+			}
+			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
+		} else if (data instanceof SensorData){
+			var channelOuts = new ArrayList<ChannelOut>
+			val sensorData = data as SensorData
+			for(SensorDataOut sensorDataOut : sensorData.outputs ){
+				if (sensorDataOut instanceof ChannelOut){
+					val channelOut = sensorDataOut as ChannelOut
+					channelOuts.add(channelOut)
+					checkWindowPipeline(channelOut.pipeline)
+				}
+			}
+			checkSameTypeOfChannelOutPipelines(channelOuts)
+		}	
 	}
 
 	@Check
