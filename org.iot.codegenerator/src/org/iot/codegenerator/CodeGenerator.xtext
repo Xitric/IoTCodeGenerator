@@ -20,7 +20,7 @@ Channel:
 ;
 
 Board:
-	'board' name=ID BEGIN
+	'board' name=ID 'version' version=ID BEGIN
 		'in' input=[Channel] sensors+=Sensor+
 	END
 ;
@@ -33,12 +33,12 @@ Sensor:
 
 ExtSensor:
 	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
-	type=ID '('pins+=INT (',' pins+=INT)* ')'
+	sensortype=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
 	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
-	type=ID
+	sensortype=ID
 ;
 
 Variables:
@@ -53,7 +53,7 @@ Sampler:
 	'sample' ({FrequencySampler} 'frequency' delay=INT | {SignalSampler} 'signal')
 ;
 
-SensorData:
+SensorData returns Data:
 	{SensorData} 'data' name=ID BEGIN
 		outputs += SensorDataOut+
 	END
@@ -183,12 +183,12 @@ Cloud:
 ;
 
 Transformation:
-	'transformation' name=ID 'as' variables=Variables BEGIN
+	'transformation' provider=[Data] 'as' variables=Variables BEGIN
 		datas+=TransformationData+
 	END
 ;
 
-TransformationData:
+TransformationData returns Data:
 	{TransformationData} 'data' name=ID BEGIN
 		outputs += TransformationOut+ 	
 	END
@@ -196,6 +196,10 @@ TransformationData:
 
 TransformationOut: 
 	'out' source=[Variables] pipeline=Pipeline?
+;
+
+Provider:
+	Sensor | Transformation
 ;
 
 terminal BEGIN: 'synthetic:BEGIN';
