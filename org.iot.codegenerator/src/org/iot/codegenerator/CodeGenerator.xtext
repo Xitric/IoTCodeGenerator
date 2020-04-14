@@ -20,7 +20,7 @@ Channel:
 ;
 
 Board:
-	'board' name=ID BEGIN
+	'board' name=ID 'version' version=ID BEGIN
 		'in' input=[Channel] sensors+=Sensor+
 	END
 ;
@@ -32,11 +32,11 @@ Sensor:
 ;
 
 ExtSensor:
-	name=ID '('pins+=INT (',' pins+=INT)* ')'
+	type=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
-	name=ID
+	type=ID
 ;
 
 Variables:
