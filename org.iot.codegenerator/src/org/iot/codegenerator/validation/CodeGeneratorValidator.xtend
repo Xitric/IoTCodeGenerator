@@ -5,6 +5,8 @@ package org.iot.codegenerator.validation
 
 import com.google.common.collect.Sets
 import com.google.inject.Inject
+import java.util.stream.Stream
+import java.util.stream.Collectors
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.HashMap
@@ -54,6 +56,8 @@ import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.ExtSensor
 
+import static extension org.eclipse.xtext.EcoreUtil2.*
+
 /**
  * This class contains custom validation rules. 
  * 
@@ -63,6 +67,7 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	public static val INCORRECT_INPUT_TYPE_PIN = "org.iot.codegenerator.IncorrectInputTypePin"
 	public static val INCORRECT_INPUT_TYPE_I2C = "org.iot.codegenerator.IncorrectInputTypeI2c"
+	public static val UNUSED_VARIABLE = "org.iot.codegenerator.UnusedVariable"
 
 	@Inject
 	extension TypeChecker
@@ -156,7 +161,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	def checkNoDuplicateDataName(List<Data> datas) {
 		val dataNameValues = new HashMap<String, Set<Data>>
-
 		for (data : datas) {
 			val name = data.name
 			if (dataNameValues.containsKey(name)) {
@@ -173,6 +177,21 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				}
 			}
 		}
+	}
+	
+	@Check
+	def validateUsageOfdataDeclaration(SensorData data) {
+		val deviceConf = data.eContainer.getContainerOfType(DeviceConf)
+		val fog = deviceConf.fog.last
+		val cloud = deviceConf.cloud.last
+		val list = Stream.concat(fog.transformations.stream(), cloud.transformations.stream()).collect(
+			Collectors.toList());
+
+		if (!list.exists[it.provider == data]) {
+			warning('''Unused variable''', data, CodeGeneratorPackage.Literals.DATA__NAME, UNUSED_VARIABLE)
+			
+		}
+
 	}
 
 	@Check
