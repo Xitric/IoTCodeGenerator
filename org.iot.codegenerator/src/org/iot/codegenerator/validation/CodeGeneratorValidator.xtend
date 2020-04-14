@@ -54,6 +54,7 @@ import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.typing.TypeChecker
 import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.OnbSensor
+import org.iot.codegenerator.codeGenerator.ExtSensor
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 
@@ -103,30 +104,47 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 
 	@Check
 	def validateBoard(Board board) {
-		val b = UtilityBoard.getBoard(board.name, board.version)
+		val b = UtilityBoard.getBoard(board)
 		if (b === null) {
-			error('''unsupported board type''', CodeGeneratorPackage.eINSTANCE.board_Name)
-		} else {
-			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''', CodeGeneratorPackage.eINSTANCE.board_Name)
-			info('''«b.getVersion()» supports the following sensors: «b.getSensors()»''', CodeGeneratorPackage.eINSTANCE.board_Version)
+			error('''unsupported board type «board.name»''', CodeGeneratorPackage.eINSTANCE.board_Name)
+		} else if (b.sensors === null) {
+			error('''unsupported version «board.version» for board type «board.name»''', CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
 	 
 	@Check
 	def validateOnboardSensor(Sensor sensor) {
-		
 		if (sensor instanceof OnbSensor){
 			val cb = sensor.getContainerOfType(Board)
-			val b = UtilityBoard.getBoard(cb.name, cb.version)
-			var s = sensor as OnbSensor
+			val b = UtilityBoard.getBoard(cb)
+			val s = sensor as OnbSensor
+			val variableCount = b.getVariableCount(s.sensortype)
 
-			if (!b.getSensors().contains(s.sensortype)){
-				error('''«b.getVersion()» does not support sensor: «s.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (s.variables.ids.length > b.getVariables(s.sensortype)){
-				error('''maximal number of output variables is «b.getVariables(s.sensortype)»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
-			} else if (s.variables.ids.length < b.getVariables(s.sensortype)){
-				info('''«s.sensortype» supports up to «b.getVariables(s.sensortype)» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			// Do not bother with invalid boards
+			if (b.sensors === null) {
+				return
 			}
+
+			if (variableCount == -1) {
+				error('''«b» does not support sensor: «s.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (variableCount < s.variables.ids.length) {
+				error('''Maximum number of output variables for sensor type «s.sensortype» is «variableCount»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (variableCount > s.variables.ids.length) {
+				info('''«s.sensortype» supports up to «variableCount» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			}
+		}
+	}
+	
+	@Check
+	def validatePinsMatchesVars(Variables variables) {
+		val parent = variables.eContainer
+		switch parent {
+			ExtSensor:
+				if (parent.pins.size() < variables.ids.size()) {
+					error('''Expected «parent.pins.size()» pin inputs, got «variables.ids.size()»''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
+				} else if (parent.pins.size() > variables.ids.size()) {
+					warning('''Number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
+				}
 		}
 	}
 	
