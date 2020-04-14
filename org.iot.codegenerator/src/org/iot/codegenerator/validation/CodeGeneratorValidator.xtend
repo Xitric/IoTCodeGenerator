@@ -114,8 +114,10 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			val cb = sensor.getContainerOfType(Board)
 			val b = UtilityBoard.getBoard(cb.name, cb.version)
 			var s = sensor as OnbSensor
-			
-			if (s.variables.ids.length > b.getVariables(s.sensortype)){
+
+			if (!b.getSensors().contains(s.sensortype)){
+				error('''«b.getVersion()» does not support sensor: «s.sensortype»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
+			} else if (s.variables.ids.length > b.getVariables(s.sensortype)){
 				error('''maximal number of output variables is «b.getVariables(s.sensortype)»''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 			} else if (s.variables.ids.length < b.getVariables(s.sensortype)){
 				info('''«s.sensortype» supports up to «b.getVariables(s.sensortype)» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
