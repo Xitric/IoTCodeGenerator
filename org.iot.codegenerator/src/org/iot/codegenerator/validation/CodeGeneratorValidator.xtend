@@ -52,6 +52,7 @@ import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.typing.TypeChecker
 import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.OnbSensor
+import org.iot.codegenerator.codeGenerator.ExtSensor
 
 /**
  * This class contains custom validation rules. 
@@ -122,6 +123,19 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			} else if (s.variables.ids.length < b.getVariables(s.sensortype)){
 				info('''«s.sensortype» supports up to «b.getVariables(s.sensortype)» variables''', CodeGeneratorPackage.eINSTANCE.sensor_Sensortype)
 			}
+		}
+	}
+	
+	@Check
+	def validatePinsMatchesVars(Variables variables) {
+		val parent = variables.eContainer
+		switch parent {
+			ExtSensor:
+				if (parent.pins.size() < variables.ids.size()) {
+					error('''Expected «parent.pins.size()» pin inputs, got «variables.ids.size()»''', CodeGeneratorPackage.eINSTANCE.variables_Ids)
+				} else if (parent.pins.size() > variables.ids.size()) {
+					warning('''Number of pin inputs shuld match number of variables after "as"''', CodeGeneratorPackage.eINSTANCE.variables_Ids)					
+				}
 		}
 	}
 	
