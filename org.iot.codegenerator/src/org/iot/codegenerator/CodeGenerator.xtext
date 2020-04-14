@@ -32,10 +32,12 @@ Sensor:
 ;
 
 ExtSensor:
+	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
 	sensortype=ID '('pins+=INT (',' pins+=INT)* ')'
 ;
 
 OnbSensor:
+	//changed from name to type due to confusion between the Sensor_name and the Sensor_data_name.
 	sensortype=ID
 ;
 
