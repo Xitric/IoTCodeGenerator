@@ -38,10 +38,6 @@ class GeneratorUtil {
 		return sensor.eAllOfType(SensorData)
 	}
 	
-	static def Iterable<ChannelOut> channelOuts(SensorData data) {
-		return data.eAllOfType(ChannelOut)
-	}
-	
 	static def String interceptorName(Pipeline pipeline) {
 		val type = switch (pipeline) {
 			Filter: "Filter"

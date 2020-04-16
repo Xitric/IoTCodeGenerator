@@ -1,8 +1,9 @@
 package org.iot.codegenerator.generator.python.board
 
+import com.google.inject.Inject
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.iot.codegenerator.codeGenerator.Board
-import com.google.inject.Inject
+import org.iot.codegenerator.codeGenerator.ScreenOut
 
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
@@ -30,6 +31,11 @@ class BoardGenerator {
 		"/libfiles/communication.py".compileAsLibfile(fsa)
 		"/libfiles/pipeline.py".compileAsLibfile(fsa)
 		"/libfiles/thread.py".compileAsLibfile(fsa)
+		
+		if (board.usesOled) {
+			"/libfiles/ssd1306.py".compileAsLibfile(fsa)
+			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile(fsa)
+		}
 	}
 
 	def compileAsLibfile(String path, IFileSystemAccess2 fsa) {
@@ -37,6 +43,10 @@ class BoardGenerator {
 			val fileName = fsa.getURI(path).deresolve(fsa.getURI("libfiles/"))
 			fsa.generateFile('''board/«fileName.path»''', stream)
 		}
+	}
+	
+	def usesOled(Board board) {
+		return !board.eContents.filter(ScreenOut).empty
 	}
 
 	def String compileMain(Board board) {

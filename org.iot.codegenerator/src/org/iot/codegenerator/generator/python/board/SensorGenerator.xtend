@@ -5,6 +5,7 @@ import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.FrequencySampler
 import org.iot.codegenerator.codeGenerator.Map
 import org.iot.codegenerator.codeGenerator.Pipeline
+import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.TransformationOut
 import org.iot.codegenerator.codeGenerator.Variables
@@ -107,11 +108,15 @@ class SensorGenerator {
 	private def String compileInterceptors(Sensor sensor, GeneratorEnvironment env) {
 		'''
 			«FOR data : sensor.sensorDatas»
-				«FOR out : data.channelOuts»
-					«out.pipeline.compileInterceptors(env)»
+				«FOR out : data.outputs»
+					«out.compileOut(env)»
 				«ENDFOR»
 			«ENDFOR»
 		'''
+	}
+	
+	private dispatch def String compileOut(ChannelOut out, GeneratorEnvironment env) {
+		'''«out.pipeline.compileInterceptors(env)»'''
 	}
 
 	private def String compileInterceptors(Pipeline pipeline, GeneratorEnvironment env) {
@@ -170,5 +175,9 @@ class SensorGenerator {
 			return pipeline.getContainerOfType(TransformationOut).source
 		}
 		return channelContainer.source
+	}
+	
+	private dispatch def String compileOut(ScreenOut out, GeneratorEnvironment env) {
+		'''# TODO: Write to OLED'''
 	}
 }
