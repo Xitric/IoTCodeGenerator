@@ -16,11 +16,11 @@ class BoardGenerator {
 		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
 		fsa.generateFile('''board/«board.name.asModule».py''', deviceGenerator.compile(board))
 
-		if (!fsa.isFile("board/main.py")) {
-			fsa.generateFile('''board/main.py''', compileMain(board))
-		} else {
+		if (fsa.isFile("board/main.py")) {
 			val mainContents = fsa.readTextFile("board/main.py")
 			fsa.generateFile('''board/main.py''', mainContents)
+		} else {
+			fsa.generateFile('''board/main.py''', compileMain(board))
 		}
 
 		board.sensors.forEach [
@@ -57,7 +57,7 @@ class BoardGenerator {
 				«ENDIF»
 				#     board.add_output_channel(...)
 				pass
-				
+			
 			CustomCompositionRoot().provide_«board.name.asModule»().run()
 		'''
 	}

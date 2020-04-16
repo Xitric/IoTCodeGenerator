@@ -13,8 +13,11 @@ import org.iot.codegenerator.generator.python.GeneratorEnvironment
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
+import com.google.inject.Inject
 
 class CompositionRootGenerator {
+	
+	@Inject extension org.iot.codegenerator.typing.TypeChecker
 
 	def String compile(Board board) {
 		val env = new GeneratorEnvironment()
@@ -111,7 +114,7 @@ class CompositionRootGenerator {
 
 		val sink = '''
 		type('Sink', (object,), {
-			"handle": lambda data: «out.channel.name.asInstance».send(struct.pack("f", data)),  #TODO: Handle data type conversion
+			"handle": lambda data: «out.channel.name.asInstance».send(«out.pipeline.compileDataConversion»),
 			"next": None
 		})'''
 
@@ -122,6 +125,26 @@ class CompositionRootGenerator {
 					«out.pipeline.compilePipelineComposition(sink, env)»
 				)
 		'''
+	}
+	
+	private def String compileDataConversion(Pipeline pipeline) {
+		switch pipeline.lastType {
+			case INT: {
+				'''struct.pack("i", data)'''
+			}
+			case DOUBLE: {
+				'''struct.pack("f", data)'''
+			}
+			case BOOLEAN: {
+				'''struct.pack("?", data)'''
+			}
+			case STRING: {
+				'''data.encode("utf-8")'''
+			}
+			case INVALID: {
+				throw new IllegalStateException("Encountered INVALID type in grammar during code generation")
+			}
+		}
 	}
 
 	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment env) {

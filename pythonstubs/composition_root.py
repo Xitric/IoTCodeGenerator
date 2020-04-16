@@ -64,8 +64,8 @@ class CompositionRoot:
         return Pipeline(InterceptorFilter1(InterceptorMap1(InterceptorWindowMean1(
             type('Sink', (object,), {
                 "handle": lambda data: outserial.send(struct.pack("f", data)),
-                # endpoint1.send(struct.pack("d", val)
-                # outserial.send(val.encode("utf-8")
+                # endpoint1.send(struct.pack("d", data))
+                # outserial.send(data.encode("utf-8"))
                 "next": None
             })
         ))))

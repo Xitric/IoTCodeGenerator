@@ -5,16 +5,17 @@ package org.iot.codegenerator.validation
 
 import com.google.common.collect.Sets
 import com.google.inject.Inject
-import java.util.stream.Stream
-import java.util.stream.Collectors
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.HashMap
 import java.util.List
 import java.util.Set
+import java.util.stream.Collectors
+import java.util.stream.Stream
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.validation.Check
+import org.eclipse.xtext.validation.CheckType
 import org.iot.codegenerator.codeGenerator.And
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.ChannelOut
@@ -25,6 +26,7 @@ import org.iot.codegenerator.codeGenerator.DeviceConf
 import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Equal
 import org.iot.codegenerator.codeGenerator.Exponent
+import org.iot.codegenerator.codeGenerator.ExtSensor
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.GreaterThan
 import org.iot.codegenerator.codeGenerator.GreaterThanEqual
@@ -35,6 +37,7 @@ import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Not
+import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Or
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Plus
@@ -45,21 +48,11 @@ import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.codeGenerator.Transformation
 import org.iot.codegenerator.codeGenerator.TransformationData
 import org.iot.codegenerator.codeGenerator.TransformationOut
-import org.iot.codegenerator.codeGenerator.SensorDataOut
-import org.iot.codegenerator.codeGenerator.ChannelOut
-import java.util.ArrayList
-import java.util.List
-import org.iot.codegenerator.codeGenerator.WindowPipeline
+import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.WindowPipeline
-import static extension org.eclipse.xtext.EcoreUtil2.*
-
-import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.typing.TypeChecker
-import org.eclipse.xtext.validation.CheckType
-import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.ExtSensor
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 

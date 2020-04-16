@@ -27,87 +27,85 @@ import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
 class ExpressionGenerator {
 
-	static def dispatch String compile(Conditional conditional){
+	static def dispatch String compile(Conditional conditional) {
 		'''«conditional.correct.compile» if «conditional.condition.compile» else «conditional.incorrect.compile»'''
 	}
-	
-	static def dispatch String compile(Or or){
+
+	static def dispatch String compile(Or or) {
 		'''«or.left.compile» or «or.right.compile»'''
 	}
 
-	static def dispatch String compile(And and){
+	static def dispatch String compile(And and) {
 		'''«and.left.compile» and «and.right.compile»'''
 	}
 
-	static def dispatch String compile(Equal equal){
+	static def dispatch String compile(Equal equal) {
 		'''«equal.left.compile» == «equal.right.compile»'''
 	}
 
-	static def dispatch String compile(Unequal unequal){
+	static def dispatch String compile(Unequal unequal) {
 		'''«unequal.left.compile» not «unequal.right.compile»'''
 	}
 
-	static def dispatch String compile(LessThan lessThan){
+	static def dispatch String compile(LessThan lessThan) {
 		'''«lessThan.left.compile» < «lessThan.right.compile»'''
 	}
-	
-	static def dispatch String compile(LessThanEqual lessThanEqual){
+
+	static def dispatch String compile(LessThanEqual lessThanEqual) {
 		'''«lessThanEqual.left.compile» <= «lessThanEqual.right.compile»'''
 	}
-	
-	static def dispatch String compile(GreaterThan greaterThan){
+
+	static def dispatch String compile(GreaterThan greaterThan) {
 		'''«greaterThan.left.compile» > «greaterThan.right.compile»'''
 	}
-	
-	static def dispatch String compile(GreaterThanEqual greaterThanEqual){
+
+	static def dispatch String compile(GreaterThanEqual greaterThanEqual) {
 		'''«greaterThanEqual.left.compile» >= «greaterThanEqual.right.compile»'''
 	}
-	
-	static def dispatch String compile(Plus plus){
+
+	static def dispatch String compile(Plus plus) {
 		'''«plus.left.compile» + «plus.right.compile»'''
 	}
-		
-	static def dispatch String compile(Minus minus){
+
+	static def dispatch String compile(Minus minus) {
 		'''«minus.left.compile» - «minus.right.compile»'''
 	}
-		
-	static def dispatch String compile(Mul mul){
+
+	static def dispatch String compile(Mul mul) {
 		'''«mul.left.compile» * «mul.right.compile»'''
 	}
-		
-	static def dispatch String compile(Div div){
+
+	static def dispatch String compile(Div div) {
 		'''«div.left.compile» / «div.right.compile»'''
 	}
-			
-	static def dispatch String compile(Negation negation){
+
+	static def dispatch String compile(Negation negation) {
 		'''-«negation.value.compile»'''
 	}
-			
-	static def dispatch String compile(Exponent exponent){
+
+	static def dispatch String compile(Exponent exponent) {
 		'''«exponent.base.compile» ** «exponent.power.compile»'''
 	}
-				
-	static def dispatch String compile(Not not){
+
+	static def dispatch String compile(Not not) {
 		'''not «not.value.compile»'''
 	}
-	
-	static def dispatch String compile(NumberLiteral numberLiteral){
+
+	static def dispatch String compile(NumberLiteral numberLiteral) {
 		'''«numberLiteral.value»'''
 	}
-	
-	static def dispatch String compile(BooleanLiteral booleanLiteral){
+
+	static def dispatch String compile(BooleanLiteral booleanLiteral) {
 		'''«booleanLiteral.value.booleanValue»'''
 	}
-	
-	static def dispatch String compile(Reference reference){
+
+	static def dispatch String compile(Reference reference) {
 		val sensor = reference.getContainerOfType(Sensor)
-		val sensorName = sensor.variables.name
-		'''«sensorName.asInstance».«reference.variable.name»'''
-		
+		val variableName = sensor.variables.name
+		'''«variableName.asInstance».«reference.variable.name»'''
 	}
-	
-	static def dispatch String compile(StringLiteral stringLiteral){
+
+	static def dispatch String compile(StringLiteral stringLiteral) {
 		'''"«stringLiteral.value»"'''
-	}	
-	
+	}
 }
