@@ -8,7 +8,6 @@ except ModuleNotFoundError:
 class Board:
 
     # TODO: Don't generate input channel if the board does not accept input
-    # TODO: Make input optional in the DSL
     def __init__(self):
         self._sensors = {}
         self._input_channel = None

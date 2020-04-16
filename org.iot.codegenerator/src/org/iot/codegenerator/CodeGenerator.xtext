@@ -21,7 +21,7 @@ Channel:
 
 Board:
 	'board' name=ID 'version' version=ID BEGIN
-		'in' input=[Channel] sensors+=Sensor+
+		('in' input=[Channel])? sensors+=Sensor+
 	END
 ;
 

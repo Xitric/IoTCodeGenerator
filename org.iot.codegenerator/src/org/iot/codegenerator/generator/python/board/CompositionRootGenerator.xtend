@@ -66,10 +66,11 @@ class CompositionRootGenerator {
 				«FOR sensor : board.sensors»
 					«board.name.asInstance».add_sensor("«sensor.sensortype.asModule»", self.«sensor.providerName»())
 				«ENDFOR»
-				«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())
+				«IF board.input !== null»«board.name.asInstance».set_input_channel(self.«env.useChannel(board.input).providerName»())«ENDIF»
 				«FOR channel : env.channels.filter[it != board.input]»
 					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
 				«ENDFOR»
+				return «board.name.asInstance»
 			
 		'''
 	}
