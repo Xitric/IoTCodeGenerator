@@ -10,14 +10,16 @@ import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 class BoardGenerator {
 
 	@Inject CompositionRootGenerator compositionRootGenerator
+	@Inject SensorProviderGenerator sensorProviderGenerator
 	@Inject DeviceGenerator deviceGenerator
-	@Inject SensorGenerator sensorGenerator
+	@Inject SensorGenerator sensorGenerator 
 	
 	static IFileSystemAccess2 _fsa
 	
 	def compile(Board board, IFileSystemAccess2 fsa) {
 		BoardGenerator._fsa = fsa
 		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
+		fsa.generateFile('''board/sensor_provider.py''', sensorProviderGenerator.compile(board))
 		fsa.generateFile('''board/«board.name.asModule».py''', deviceGenerator.compile(board))
 
 		if (fsa.isFile("board/main.py")) {
@@ -34,7 +36,6 @@ class BoardGenerator {
 		"/libfiles/communication.py".compileAsLibfile()
 		"/libfiles/pipeline.py".compileAsLibfile()
 		"/libfiles/thread.py".compileAsLibfile()
-		"/libfiles/sensor_provider.py".compileAsLibfile()
 		
 		if (board.usesOled) {
 			"/libfiles/ssd1306.py".compileAsLibfile()

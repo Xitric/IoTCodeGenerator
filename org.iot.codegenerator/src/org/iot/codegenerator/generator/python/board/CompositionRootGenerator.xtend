@@ -15,7 +15,6 @@ import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.OnbSensor
-import org.iot.codegenerator.codeGenerator.ExtSensor
 import java.util.Arrays
 
 class CompositionRootGenerator {
@@ -112,22 +111,12 @@ class CompositionRootGenerator {
 	
 	private def String compileSensorProvider(Sensor sensor, GeneratorEnvironment env){
 		determineSensorDriverLib(sensor.sensortype)
+		env.useImport("sensor_provider", sensor.sensortype+"_wrapper")
+		'''
 		
-		if (!Arrays.asList("thermometer", "motion", "lux").contains(sensor.sensortype)){
-			'''
-			
-			def provide_driver_«sensor.sensortype»(self):
-				# TODO: not yet supported"
-				return default_wrapper()
-			'''	
-		} else {
-			env.useImport("sensor_provider", sensor.sensortype+"_wrapper")
-			'''
-			
-			def provide_driver_«sensor.sensortype»(self):
-				return «sensor.sensortype»_wrapper()
-			'''				
-		}
+		def provide_driver_«sensor.sensortype»(self):
+			return «sensor.sensortype»_wrapper()
+		'''				
 	}
 	
 	private def determineSensorDriverLib(String sensortype){
