@@ -12,8 +12,11 @@ class BoardGenerator {
 	@Inject CompositionRootGenerator compositionRootGenerator
 	@Inject DeviceGenerator deviceGenerator
 	@Inject SensorGenerator sensorGenerator
-
+	
+	static IFileSystemAccess2 _fsa
+	
 	def compile(Board board, IFileSystemAccess2 fsa) {
+		BoardGenerator._fsa = fsa
 		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
 		fsa.generateFile('''board/«board.name.asModule».py''', deviceGenerator.compile(board))
 
@@ -28,20 +31,21 @@ class BoardGenerator {
 			fsa.generateFile('''board/«sensortype».py''', sensorGenerator.compile(it))
 		]
 
-		"/libfiles/communication.py".compileAsLibfile(fsa)
-		"/libfiles/pipeline.py".compileAsLibfile(fsa)
-		"/libfiles/thread.py".compileAsLibfile(fsa)
+		"/libfiles/communication.py".compileAsLibfile()
+		"/libfiles/pipeline.py".compileAsLibfile()
+		"/libfiles/thread.py".compileAsLibfile()
+		"/libfiles/sensor_provider.py".compileAsLibfile()
 		
 		if (board.usesOled) {
-			"/libfiles/ssd1306.py".compileAsLibfile(fsa)
-			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile(fsa)
+			"/libfiles/ssd1306.py".compileAsLibfile()
+			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile()
 		}
 	}
 
-	def compileAsLibfile(String path, IFileSystemAccess2 fsa) {
-		try (val stream = this.class.getResourceAsStream(path)) {
-			val fileName = fsa.getURI(path).deresolve(fsa.getURI("libfiles/"))
-			fsa.generateFile('''board/«fileName.path»''', stream)
+	def static compileAsLibfile(String path) {
+		try (val stream = BoardGenerator.classLoader.getResourceAsStream(path)) {
+			val fileName = BoardGenerator._fsa.getURI(path).deresolve(BoardGenerator._fsa.getURI("libfiles/"))
+			BoardGenerator._fsa.generateFile('''board/«fileName.path»''', stream)
 		}
 	}
 	

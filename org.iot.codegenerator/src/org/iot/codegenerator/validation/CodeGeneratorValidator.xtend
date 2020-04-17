@@ -107,6 +107,8 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			error('''unsupported board type «board.name»''', CodeGeneratorPackage.eINSTANCE.board_Name)
 		} else if (b.sensors === null) {
 			error('''unsupported version «board.version» for board type «board.name»''', CodeGeneratorPackage.eINSTANCE.board_Version)
+		} else {
+			info('''«board.version» supports the following sensors: «b.sensors»''', CodeGeneratorPackage.eINSTANCE.board_Version)
 		}
 	}
 	 

@@ -96,7 +96,7 @@ class ExpressionGenerator {
 	}
 
 	static def dispatch String compile(BooleanLiteral booleanLiteral) {
-		'''«booleanLiteral.value.booleanValue»'''
+		'''«booleanLiteral.value.booleanValue.toString.toFirstUpper»'''
 	}
 
 	static def dispatch String compile(Reference reference) {

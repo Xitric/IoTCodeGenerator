@@ -14,11 +14,15 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
 import com.google.inject.Inject
+import org.iot.codegenerator.codeGenerator.OnbSensor
+import org.iot.codegenerator.codeGenerator.ExtSensor
+import java.util.Arrays
 
 class CompositionRootGenerator {
 	
 	@Inject extension org.iot.codegenerator.typing.TypeChecker
-
+	var compile_wrapper = true
+	
 	def String compile(Board board) {
 		val env = new GeneratorEnvironment()
 		val classDef = board.compileClass(env)
@@ -34,6 +38,7 @@ class CompositionRootGenerator {
 		val sensorProviders = board.compileSensorProviders(env)
 		val pipelineProviders = board.compilePipelineProviders(env)
 		val boardProvider = board.compileBoardProvider(env)
+		env.useImport("sensor_provider", "default_wrapper")
 
 		'''
 			class CompositionRoot:
@@ -44,6 +49,10 @@ class CompositionRootGenerator {
 				«pipelineProviders»
 				«board.compileChannelProviders(env)»
 				«compileMakeChannel(env)»
+				«board.computeSensorProviders(env)»
+				
+				def provide_driver_default(self):
+					return default_wrapper()
 		'''
 	}
 
@@ -74,15 +83,14 @@ class CompositionRootGenerator {
 					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
 				«ENDFOR»
 				return «board.name.asInstance»
-			
 		'''
 	}
 
 	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR sensor : board.sensors»
+			«FOR sensor : board.sensors» 
 				def «sensor.providerName»(self):
-					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»(self.provide_driver_)  # TODO: Cannot determine driver yet
+					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»«IF sensor instanceof OnbSensor»(self.provide_driver_«sensor.sensortype»())«ELSE»(self.provide_driver_default())«ENDIF»
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
 							«sensor.sensortype.asInstance».add_pipeline("«data.name.asModule»", self.«out.providerName»())
@@ -92,6 +100,43 @@ class CompositionRootGenerator {
 				
 			«ENDFOR»
 		'''
+	}
+	
+	private def String computeSensorProviders(Board board, GeneratorEnvironment env){
+		'''
+			«FOR sensor : board.sensors»
+				«IF sensor instanceof OnbSensor»«sensor.compileSensorProvider(env)»«ENDIF»
+			«ENDFOR»
+		'''
+	}
+	
+	private def String compileSensorProvider(Sensor sensor, GeneratorEnvironment env){
+		determineSensorDriverLib(sensor.sensortype)
+		
+		if (!Arrays.asList("thermometer", "motion", "lux").contains(sensor.sensortype)){
+			'''
+			
+			def provide_driver_«sensor.sensortype»(self):
+				# TODO: not yet supported"
+				return default_wrapper()
+			'''	
+		} else {
+			env.useImport("sensor_provider", sensor.sensortype+"_wrapper")
+			'''
+			
+			def provide_driver_«sensor.sensortype»(self):
+				return «sensor.sensortype»_wrapper()
+			'''				
+		}
+	}
+	
+	private def determineSensorDriverLib(String sensortype){
+		if (sensortype == "thermometer")
+			BoardGenerator.compileAsLibfile("/libfiles/hts221.py")
+		if(sensortype == "lux")
+			BoardGenerator.compileAsLibfile("/libfiles/bh1750.py")
+		if(sensortype == "motion")
+			BoardGenerator.compileAsLibfile("/libfiles/mpu6050.py")
 	}
 
 	// TODO: Driver provider
