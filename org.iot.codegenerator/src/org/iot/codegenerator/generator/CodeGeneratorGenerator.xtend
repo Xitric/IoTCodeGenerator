@@ -29,10 +29,10 @@ class CodeGeneratorGenerator extends AbstractGenerator {
 		val board = resource.allContents.filter(Board).next()
 		board.compile(fsa)
 		
-		val fog = resource.allContents.filter(Fog).next()
+		//val fog = resource.allContents.filter(Fog).next()
 		// TODO
 		
-		val cloud = resource.allContents.filter(Cloud).next()
+		//val cloud = resource.allContents.filter(Cloud).next()
 		// TODO
 	}
 

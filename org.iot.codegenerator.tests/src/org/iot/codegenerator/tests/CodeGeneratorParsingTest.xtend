@@ -3,12 +3,98 @@
  */
 package org.iot.codegenerator.tests
 
+import com.google.inject.Inject
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.extensions.InjectionExtension
+import org.eclipse.xtext.testing.util.ParseHelper
+import org.iot.codegenerator.codeGenerator.ChannelOut
+import org.iot.codegenerator.codeGenerator.DeviceConf
+import org.iot.codegenerator.codeGenerator.Div
+import org.iot.codegenerator.codeGenerator.Exponent
+import org.iot.codegenerator.codeGenerator.Expression
+import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.Minus
+import org.iot.codegenerator.codeGenerator.Mul
+import org.iot.codegenerator.codeGenerator.Negation
+import org.iot.codegenerator.codeGenerator.NumberLiteral
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Reference
+import org.iot.codegenerator.codeGenerator.SensorData
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.^extension.ExtendWith
 
 @ExtendWith(InjectionExtension)
 @InjectWith(CodeGeneratorInjectorProvider)
 class CodeGeneratorParsingTest {
 
+	@Inject extension ParseHelper<DeviceConf>
+
+	static def dispatch double compute(Expression expression) {
+		throw new IllegalStateException("Fuck")
+	}
+
+	static def dispatch double compute(Plus plus) {
+		plus.left.compute + plus.right.compute
+	}
+
+	static def dispatch double compute(Minus minus) {
+		minus.left.compute - minus.right.compute
+	}
+
+	static def dispatch double compute(Mul mul) {
+		mul.left.compute * mul.right.compute
+	}
+
+	static def dispatch double compute(Div div) {
+		div.left.compute / div.right.compute
+	}
+
+	static def dispatch double compute(Negation negation) {
+		-negation.value.compute
+	}
+
+	static def dispatch double compute(Exponent exponent) {
+		exponent.base.compute ** exponent.power.compute
+	}
+
+	static def dispatch double compute(NumberLiteral numberLiteral) {
+		Double.parseDouble(numberLiteral.value)
+	}
+
+	static def dispatch double compute(Reference reference) {
+		1
+	}
+
+	private def void assertValue(CharSequence exp, double value) {
+		val compiled = '''
+			language python
+			channel outserial
+			board esp32 version wrover
+				sensor thermistor (12) as x(a)
+					data output:
+						out outserial x.map[«exp» -> result]
+		'''.parse
+
+		val expression = (((compiled.board.get(0).sensors.get(0).datas.get(0) as SensorData).outputs.get(0) as ChannelOut).pipeline as Map).expression
+		Assertions.assertEquals(value, expression.compute, 0.0001)
+	}
+
+	@Test
+	def void evaluate_exponent_associativity() {
+		'''
+			2 ** 2 ** 2 ** 2
+		'''.assertValue(65536)
+	}
+	
+	@Test
+	def void evaluate_exponent_precedence() {
+		'''
+			-2 ** 2
+		'''.assertValue(-4)
+		
+		'''
+			2 ** -2
+		'''.assertValue(0.25)
+	}
 }

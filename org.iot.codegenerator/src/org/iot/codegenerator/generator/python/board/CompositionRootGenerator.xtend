@@ -1,29 +1,29 @@
 package org.iot.codegenerator.generator.python.board
 
+//import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.Channel
 import org.iot.codegenerator.codeGenerator.ChannelOut
+import org.iot.codegenerator.codeGenerator.ExtSensor
+import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SensorDataOut
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
+//import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
-import com.google.inject.Inject
-import org.iot.codegenerator.codeGenerator.OnbSensor
-import java.util.Arrays
+import static extension org.iot.codegenerator.generator.python.board.DriverProviderGenerator.*
 
 class CompositionRootGenerator {
-	
-	@Inject extension org.iot.codegenerator.typing.TypeChecker
-	var compile_wrapper = true
-	
-	def String compile(Board board) {
-		val env = new GeneratorEnvironment()
+
+//	@Inject extension TypeChecker
+
+	def String compile(Board board, GeneratorEnvironment env) {
 		val classDef = board.compileClass(env)
 
 		'''
@@ -37,21 +37,18 @@ class CompositionRootGenerator {
 		val sensorProviders = board.compileSensorProviders(env)
 		val pipelineProviders = board.compilePipelineProviders(env)
 		val boardProvider = board.compileBoardProvider(env)
-		env.useImport("sensor_provider", "default_wrapper")
 
 		'''
 			class CompositionRoot:
 				
 				«board.compileConstructor(env)»
 				«boardProvider»
+				«board.compileDeviceProvider(env)»
 				«sensorProviders»
 				«pipelineProviders»
 				«board.compileChannelProviders(env)»
+				«board.compileDriverProviders(env)»
 				«compileMakeChannel(env)»
-				«board.computeSensorProviders(env)»
-				
-				def provide_driver_default(self):
-					return default_wrapper()
 		'''
 	}
 
@@ -64,7 +61,7 @@ class CompositionRootGenerator {
 					self.«channel.name.asInstance» = None
 				«ENDFOR»
 				
-				with open("conf-filled.json", "r") as _conf_file:
+				with open("config.json", "r") as _conf_file:
 					self.configuration = ujson.loads("".join(_conf_file.readlines()))
 			
 		'''
@@ -73,7 +70,7 @@ class CompositionRootGenerator {
 	private def String compileBoardProvider(Board board, GeneratorEnvironment env) {
 		'''
 			def «board.providerName»(self):
-				«board.name.asInstance» = «env.useImport(board.name.asModule, board.name.asClass)»()
+				«board.name.asInstance» = self.provide_device_«board.name.asModule»()
 				«FOR sensor : board.sensors»
 					«board.name.asInstance».add_sensor("«sensor.sensortype.asModule»", self.«sensor.providerName»())
 				«ENDFOR»
@@ -82,14 +79,23 @@ class CompositionRootGenerator {
 					«board.name.asInstance».add_output_channel(self.«channel.providerName»())
 				«ENDFOR»
 				return «board.name.asInstance»
+			
+		'''
+	}
+	
+	private def String compileDeviceProvider(Board board, GeneratorEnvironment env) {
+		'''
+			def provide_device_«board.name.asModule»(self):
+				return «env.useImport(board.name.asModule, board.name.asClass)»()
+			
 		'''
 	}
 
 	private def String compileSensorProviders(Board board, GeneratorEnvironment env) {
 		'''
-			«FOR sensor : board.sensors» 
+			«FOR sensor : board.sensors»
 				def «sensor.providerName»(self):
-					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»«IF sensor instanceof OnbSensor»(self.provide_driver_«sensor.sensortype»())«ELSE»(self.provide_driver_default())«ENDIF»
+					«sensor.sensortype.asInstance» = «env.useImport(sensor.sensortype.asModule)».«sensor.sensortype.asClass»(self.provide_driver_«sensor.sensor_driver_name»())
 					«FOR data : sensor.sensorDatas»
 						«FOR out : data.outputs»
 							«sensor.sensortype.asInstance».add_pipeline("«data.name.asModule»", self.«out.providerName»())
@@ -100,35 +106,23 @@ class CompositionRootGenerator {
 			«ENDFOR»
 		'''
 	}
-	
-	private def String computeSensorProviders(Board board, GeneratorEnvironment env){
-		'''
-			«FOR sensor : board.sensors»
-				«IF sensor instanceof OnbSensor»«sensor.compileSensorProvider(env)»«ENDIF»
-			«ENDFOR»
-		'''
-	}
-	
-	private def String compileSensorProvider(Sensor sensor, GeneratorEnvironment env){
-		determineSensorDriverLib(sensor.sensortype)
-		env.useImport("sensor_provider", sensor.sensortype+"_wrapper")
-		'''
-		
-		def provide_driver_«sensor.sensortype»(self):
-			return «sensor.sensortype»_wrapper()
-		'''				
-	}
-	
-	private def determineSensorDriverLib(String sensortype){
-		if (sensortype == "thermometer")
-			BoardGenerator.compileAsLibfile("/libfiles/hts221.py")
-		if(sensortype == "lux")
-			BoardGenerator.compileAsLibfile("/libfiles/bh1750.py")
-		if(sensortype == "motion")
-			BoardGenerator.compileAsLibfile("/libfiles/mpu6050.py")
+
+	private def String sensor_driver_name(Sensor sensor) {
+		switch sensor {
+			OnbSensor: {
+				switch sensor.sensortype {
+					case "thermometer": "hts221"
+					case "lux": "bh1750"
+					case "motion": "mpu6050"
+					default: "pass  # Not yet supported"
+				}
+			}
+			ExtSensor: {
+				"adc"
+			}
+		}
 	}
 
-	// TODO: Driver provider
 	private def String compilePipelineProviders(Board board, GeneratorEnvironment env) {
 		'''
 			«FOR sensor : board.sensors»
@@ -160,36 +154,37 @@ class CompositionRootGenerator {
 				)
 		'''
 	}
-	
+
 	private def String compileDataConversion(Pipeline pipeline) {
-		switch pipeline.lastType {
-			case INT: {
-				'''struct.pack("i", data)'''
-			}
-			case DOUBLE: {
-				'''struct.pack("f", data)'''
-			}
-			case BOOLEAN: {
-				'''struct.pack("?", data)'''
-			}
-			case STRING: {
-				'''data.encode("utf-8")'''
-			}
-			case INVALID: {
-				throw new IllegalStateException("Encountered INVALID type in grammar during code generation")
-			}
-		}
+		"data"
+//		switch pipeline.lastType {
+//			case INT: {
+//				'''struct.pack("i", data)'''
+//			}
+//			case DOUBLE: {
+//				'''struct.pack("f", data)'''
+//			}
+//			case BOOLEAN: {
+//				'''struct.pack("?", data)'''
+//			}
+//			case STRING: {
+//				'''data.encode("utf-8")'''
+//			}
+//			case INVALID: {
+//				throw new IllegalStateException("Encountered INVALID type in grammar during code generation")
+//			}
+//		}
 	}
 
 	private def String compilePipelineComposition(Pipeline pipeline, String sink, GeneratorEnvironment env) {
 		val inner = pipeline.next === null ? sink : pipeline.next.compilePipelineComposition(sink, env)
 		val sensorName = pipeline.getContainerOfType(Sensor).sensortype
 		val interceptorName = pipeline.interceptorName
-		
+
 		'''
-		«env.useImport(sensorName.asModule)».«interceptorName»(
-			«inner»
-		)
+			«env.useImport(sensorName.asModule)».«interceptorName»(
+				«inner»
+			)
 		'''
 	}
 
@@ -209,6 +204,14 @@ class CompositionRootGenerator {
 						self.«channel.name.asInstance» = self.make_channel("«channel.name»")
 					return self.«channel.name.asInstance»
 				
+			«ENDFOR»
+		'''
+	}
+
+	private def String compileDriverProviders(Board board, GeneratorEnvironment env) {
+		'''
+			«FOR sensor : board.sensors»
+				«sensor.compileDriverProvider(env)»
 			«ENDFOR»
 		'''
 	}

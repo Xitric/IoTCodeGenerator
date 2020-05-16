@@ -4,18 +4,22 @@ import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.FrequencySampler
 import org.iot.codegenerator.codeGenerator.Map
+import org.iot.codegenerator.codeGenerator.Max
+import org.iot.codegenerator.codeGenerator.Mean
+import org.iot.codegenerator.codeGenerator.Median
+import org.iot.codegenerator.codeGenerator.Min
+import org.iot.codegenerator.codeGenerator.Mode
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.ScreenOut
 import org.iot.codegenerator.codeGenerator.Sensor
-import org.iot.codegenerator.codeGenerator.TransformationOut
-import org.iot.codegenerator.codeGenerator.Variables
+import org.iot.codegenerator.codeGenerator.StDev
+import org.iot.codegenerator.codeGenerator.Var
 import org.iot.codegenerator.codeGenerator.Window
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
-import static extension org.eclipse.xtext.EcoreUtil2.*
-import static extension org.iot.codegenerator.generator.python.ExpressionGenerator.*
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
+import static extension org.iot.codegenerator.generator.python.ExpressionGenerator.*
 
 class SensorGenerator {
 
@@ -86,8 +90,10 @@ class SensorGenerator {
 
 	private def String compileSensorSampling(Sensor sensor, GeneratorEnvironment env) {
 		'''
-		# TODO: Unsupported
-		pass
+		«sensor.variables.name.asInstance» = self.sensor.sample()
+		for variable in self.variables:
+			for pipeline in self.variables[variable]:
+				pipeline.handle(«sensor.variables.name.asInstance»)
 		'''
 	}
 
@@ -132,7 +138,6 @@ class SensorGenerator {
 		'''
 			class «filter.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 				def handle(self, «filter.source.name.asInstance»):
-					print("Filter")
 					_should_continue = «filter.expression.compile»
 					if _should_continue:
 						self.next.handle(«filter.source.name.asInstance»)
@@ -141,17 +146,19 @@ class SensorGenerator {
 	}
 
 	private def dispatch String compileInterceptor(Map map, GeneratorEnvironment env) {
+		env.useImport("collections", "namedtuple")
 		'''
 			class «map.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 				def handle(self, «map.source.name.asInstance»):
-					print("Map")
+					_tuple = namedtuple("«map.source.name.asInstance»", "«map.output.name.asModule»")
 					_newValue = «map.expression.compile»
-					self.next.handle(_newValue)
+					self.next.handle(_tuple(_newValue))
 			
 		'''
 	}
 
 	private def dispatch String compileInterceptor(Window window, GeneratorEnvironment env) {
+		env.useImport("collections", "namedtuple")
 		'''
 			class «window.interceptorName»(«env.useImport("pipeline", "Interceptor")»):
 				def __init__(self, next: Interceptor):
@@ -159,22 +166,68 @@ class SensorGenerator {
 					self._buffer = []
 				
 				def handle(self, «window.source.name.asInstance»):
-					print("Window")
 					self._buffer.append(«window.source.name.asInstance»)
 					if len(self._buffer) == «window.width»:
-						_result = None # TODO: Unsupported
+						def _execute(_values):
+							«window.executePipeline.compileExecute»
+						_result = _execute(map(lambda v: v[0], self._buffer))
+						_var_name = self._buffer[0]._fields[0]
+						_tuple = namedtuple("«window.source.name.asInstance»", _var_name)
 						self._buffer = []
-						self.next.handle(_result)
+						self.next.handle(_tuple(_result))
 			
 		'''
 	}
-
-	private def Variables getSource(Pipeline pipeline) {
-		val channelContainer = pipeline.getContainerOfType(ChannelOut)
-		if (channelContainer === null) {
-			return pipeline.getContainerOfType(TransformationOut).source
-		}
-		return channelContainer.source
+	
+	private def dispatch String compileExecute(Mean execute) {
+		'''
+		return sum(_values) / len(_values)
+		'''
+	}
+	
+	private def dispatch String compileExecute(Median execute) {
+		'''
+		_values = list(_values)
+		_values.sort()
+		mid = len(_values) // 2
+		if len(_values) % 2 is 0:
+			return (_values[mid - 1] + _values[mid]) / 2
+		else:
+			return _values[mid]
+		'''
+	}
+	
+	private def dispatch String compileExecute(Mode execute) {
+		'''
+		# TODO: Unsupported
+		pass
+		'''
+	}
+	
+	private def dispatch String compileExecute(Var execute) {
+		'''
+		# TODO: Unsupported
+		pass
+		'''
+	}
+	
+	private def dispatch String compileExecute(StDev execute) {
+		'''
+		# TODO: Unsupported
+		pass
+		'''
+	}
+	
+	private def dispatch String compileExecute(Min execute) {
+		'''
+		return min(_values)
+		'''
+	}
+	
+	private def dispatch String compileExecute(Max execute) {
+		'''
+		return max(_values)
+		'''
 	}
 	
 	private dispatch def String compileOut(ScreenOut out, GeneratorEnvironment env) {

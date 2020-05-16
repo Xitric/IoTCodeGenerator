@@ -292,12 +292,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 		}
 	}
 	
-	def checkWindowPipeline(Pipeline pipeline) {
-		if (pipeline instanceof WindowPipeline) {
-			error('''cannot use byWindow on tuple type''', pipeline, CodeGeneratorPackage.eINSTANCE.pipeline_Next)
-		}
-	}
-	
 	@Check
 	def validatePipelineOutputs(Data data){
 		if (data instanceof TransformationData) {
@@ -306,7 +300,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			
 			for (TransformationOut transformationOut : transformationDataOutputs) {
 				transformationOuts.add(transformationOut)
-				checkWindowPipeline(transformationOut.pipeline)
 			}
 			checkSameTypeOfTransformationOutPipelines(transformationOuts)	
 		} else if (data instanceof SensorData) {
@@ -317,7 +310,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 				if (sensorDataOut instanceof ChannelOut) {
 					val channelOut = sensorDataOut as ChannelOut
 					channelOuts.add(channelOut)
-					checkWindowPipeline(channelOut.pipeline)
 				}
 			}
 			checkSameTypeOfChannelOutPipelines(channelOuts)

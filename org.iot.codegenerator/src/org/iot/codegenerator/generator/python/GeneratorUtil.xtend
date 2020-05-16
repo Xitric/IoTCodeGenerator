@@ -1,5 +1,6 @@
 package org.iot.codegenerator.generator.python
 
+import org.eclipse.emf.ecore.EObject
 import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.FrequencySampler
@@ -8,6 +9,8 @@ import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.SensorData
 import org.iot.codegenerator.codeGenerator.SignalSampler
+import org.iot.codegenerator.codeGenerator.TransformationOut
+import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.Window
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
@@ -53,5 +56,13 @@ class GeneratorUtil {
 		].size + 1
 
 		'''Interceptor«type»«index»'''
+	}
+	
+	static def Variables getSource(Pipeline pipeline) {
+		val channelContainer = pipeline.getContainerOfType(ChannelOut)
+		if (channelContainer === null) {
+			return pipeline.getContainerOfType(TransformationOut).source
+		}
+		return channelContainer.source
 	}
 }

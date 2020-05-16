@@ -10,10 +10,12 @@ class GeneratorEnvironment {
 
 	Map<String, Set<String>> imports
 	Set<Channel> channels
+	Set<String> libFiles
 
 	new() {
 		imports = new HashMap()
 		channels = new HashSet()
+		libFiles = new HashSet()
 	}
 
 	def String useImport(String module) {
@@ -48,5 +50,13 @@ class GeneratorEnvironment {
 
 	def Iterable<Channel> getChannels() {
 		return channels
+	}
+	
+	def useLibFile(String name) {
+		libFiles.add(name)
+	}
+	
+	def getLibFiles() {
+		return libFiles
 	}
 }

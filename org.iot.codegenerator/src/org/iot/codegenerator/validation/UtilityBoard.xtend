@@ -16,7 +16,7 @@ class UtilityBoard {
 		if (lowerCaseModel == "esp32") {
 			return new ESP32(lowerCaseVersion)
 		}
-
+		
 		return null
 	}
 }

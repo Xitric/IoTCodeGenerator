@@ -4,22 +4,19 @@ import com.google.inject.Inject
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.iot.codegenerator.codeGenerator.Board
 import org.iot.codegenerator.codeGenerator.ScreenOut
+import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 
 class BoardGenerator {
 
 	@Inject CompositionRootGenerator compositionRootGenerator
-	@Inject SensorProviderGenerator sensorProviderGenerator
 	@Inject DeviceGenerator deviceGenerator
-	@Inject SensorGenerator sensorGenerator 
-	
-	static IFileSystemAccess2 _fsa
-	
+	@Inject SensorGenerator sensorGenerator
+
 	def compile(Board board, IFileSystemAccess2 fsa) {
-		BoardGenerator._fsa = fsa
-		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board))
-		fsa.generateFile('''board/sensor_provider.py''', sensorProviderGenerator.compile(board))
+		val env = new GeneratorEnvironment()
+		fsa.generateFile('''board/composition_root.py''', compositionRootGenerator.compile(board, env))
 		fsa.generateFile('''board/«board.name.asModule».py''', deviceGenerator.compile(board))
 
 		if (fsa.isFile("board/main.py")) {
@@ -33,23 +30,27 @@ class BoardGenerator {
 			fsa.generateFile('''board/«sensortype».py''', sensorGenerator.compile(it))
 		]
 
-		"/libfiles/communication.py".compileAsLibfile()
-		"/libfiles/pipeline.py".compileAsLibfile()
-		"/libfiles/thread.py".compileAsLibfile()
-		
+		"/libfiles/communication.py".compileAsLibfile(fsa)
+		"/libfiles/pipeline.py".compileAsLibfile(fsa)
+		"/libfiles/thread.py".compileAsLibfile(fsa)
+
 		if (board.usesOled) {
-			"/libfiles/ssd1306.py".compileAsLibfile()
-			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile()
+			"/libfiles/ssd1306.py".compileAsLibfile(fsa)
+			"/libfiles/LICENSE_ssd1306.txt".compileAsLibfile(fsa)
+		}
+
+		for (String libFile : env.libFiles) {
+			("/libfiles/" + libFile).compileAsLibfile(fsa)
 		}
 	}
 
-	def static compileAsLibfile(String path) {
-		try (val stream = BoardGenerator.classLoader.getResourceAsStream(path)) {
-			val fileName = BoardGenerator._fsa.getURI(path).deresolve(BoardGenerator._fsa.getURI("libfiles/"))
-			BoardGenerator._fsa.generateFile('''board/«fileName.path»''', stream)
+	def compileAsLibfile(String path, IFileSystemAccess2 fsa) {
+		try (val stream = class.getResourceAsStream(path)) {
+			val fileName = path.replaceFirst("/libfiles/", "")
+			fsa.generateFile('''board/«fileName»''', stream)
 		}
 	}
-	
+
 	def usesOled(Board board) {
 		return !board.eContents.filter(ScreenOut).empty
 	}

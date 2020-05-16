@@ -1,32 +1,30 @@
 package org.iot.codegenerator.typing
 
+import com.google.inject.Inject
+import org.eclipse.xtext.util.OnChangeEvictingCache
 import org.iot.codegenerator.codeGenerator.BooleanLiteral
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Expression
-import org.iot.codegenerator.codeGenerator.Minus
-import org.iot.codegenerator.codeGenerator.Mul
-import org.iot.codegenerator.codeGenerator.Negation
-import org.iot.codegenerator.codeGenerator.NumberLiteral
-import org.iot.codegenerator.codeGenerator.Plus
-import org.iot.codegenerator.codeGenerator.Reference
-import org.iot.codegenerator.codeGenerator.StringLiteral
-import org.eclipse.xtext.util.OnChangeEvictingCache
-import com.google.inject.Inject
-import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Map
-import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.Variable
-import org.iot.codegenerator.codeGenerator.Var
-import org.iot.codegenerator.codeGenerator.StDev
-import org.iot.codegenerator.codeGenerator.Count
 import org.iot.codegenerator.codeGenerator.Max
 import org.iot.codegenerator.codeGenerator.Mean
 import org.iot.codegenerator.codeGenerator.Median
 import org.iot.codegenerator.codeGenerator.Min
+import org.iot.codegenerator.codeGenerator.Minus
 import org.iot.codegenerator.codeGenerator.Mode
-import org.iot.codegenerator.codeGenerator.Reduce
+import org.iot.codegenerator.codeGenerator.Mul
+import org.iot.codegenerator.codeGenerator.Negation
+import org.iot.codegenerator.codeGenerator.NumberLiteral
+import org.iot.codegenerator.codeGenerator.Pipeline
+import org.iot.codegenerator.codeGenerator.Plus
+import org.iot.codegenerator.codeGenerator.Reference
+import org.iot.codegenerator.codeGenerator.StDev
+import org.iot.codegenerator.codeGenerator.StringLiteral
+import org.iot.codegenerator.codeGenerator.Var
+import org.iot.codegenerator.codeGenerator.Variable
+import org.iot.codegenerator.codeGenerator.Variables
 import org.iot.codegenerator.codeGenerator.WindowPipeline
 
 class TypeChecker {
@@ -107,7 +105,7 @@ class TypeChecker {
 				cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, type)
 			} else {
 				switch(pipe){
-					case Count, Max, Mean, Median, Min, Mode, Reduce, StDev, Var, WindowPipeline:
+					case Max, Mean, Median, Min, Mode, StDev, Var, WindowPipeline:
 						type = Type.INT
 				}
 			}

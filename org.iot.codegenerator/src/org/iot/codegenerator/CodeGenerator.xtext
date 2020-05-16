@@ -88,15 +88,13 @@ WindowPipeline:
 ;
 
 ExecutePipeline:
-    {Reduce} 'reduce' |
     {Mean} 'mean' |
     {Median} 'median' |
     {Mode} 'mode' |
     {Var} 'var' |
     {StDev} 'stdev' |
     {Min} 'min' |
-    {Max} 'max' |
-    {Count} 'count'
+    {Max} 'max'
 ;
 
 // The expression rules are loose allowing for meaningless expressions to be
@@ -205,10 +203,10 @@ Provider:
 terminal BEGIN: 'synthetic:BEGIN';
 terminal END: 'synthetic:END';
 
-@Override 
-terminal INT returns ecore::EInt:
-	'0' | ('1'..'9')('0'..'9')*
-;
+//@Override 
+//terminal INT returns ecore::EInt:
+//	'0' | ('1'..'9')('0'..'9')*
+//;
 terminal DBL returns ecore::EDouble:
 	INT? '.'('0'..'9')+
 ;
