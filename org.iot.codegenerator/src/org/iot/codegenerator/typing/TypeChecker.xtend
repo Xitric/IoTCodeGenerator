@@ -1,35 +1,26 @@
 package org.iot.codegenerator.typing
 
 import com.google.inject.Inject
-import org.eclipse.xtext.util.OnChangeEvictingCache
 import org.iot.codegenerator.codeGenerator.BooleanLiteral
 import org.iot.codegenerator.codeGenerator.Conditional
 import org.iot.codegenerator.codeGenerator.Div
 import org.iot.codegenerator.codeGenerator.Exponent
 import org.iot.codegenerator.codeGenerator.Expression
+import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.Map
-import org.iot.codegenerator.codeGenerator.Max
-import org.iot.codegenerator.codeGenerator.Mean
-import org.iot.codegenerator.codeGenerator.Median
-import org.iot.codegenerator.codeGenerator.Min
 import org.iot.codegenerator.codeGenerator.Minus
-import org.iot.codegenerator.codeGenerator.Mode
 import org.iot.codegenerator.codeGenerator.Mul
 import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.NumberLiteral
 import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Plus
 import org.iot.codegenerator.codeGenerator.Reference
-import org.iot.codegenerator.codeGenerator.StDev
 import org.iot.codegenerator.codeGenerator.StringLiteral
-import org.iot.codegenerator.codeGenerator.Var
-import org.iot.codegenerator.codeGenerator.Variable
-import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.WindowPipeline
+import org.iot.codegenerator.codeGenerator.Window
 
 class TypeChecker {
 
-	@Inject OnChangeEvictingCache cache
+	@Inject extension ReferenceTypeProvider
 
 	enum Type {
 		INT,
@@ -94,29 +85,33 @@ class TypeChecker {
 			Type.INT
 		}
 	}
-	
-	def Type lastType(Pipeline pipeline){	
-		var type = Type.INT
-		var pipe = pipeline
-		while(pipe !== null){
-			if (pipe instanceof Map) {
-				val mapPipeline = (pipe as Map)
-				type = mapPipeline.expression.type
-				cache.getOrCreate(mapPipeline.eResource).set(mapPipeline.output.name, type)
-			} else {
-				switch(pipe){
-					case Max, Mean, Median, Min, Mode, StDev, Var, WindowPipeline:
-						type = Type.INT
-				}
-			}
-			pipe = pipe.next
-		}
-		return type
-	}
 
-	def cacheVariables(Variables variables){
-		for (Variable variable : variables.ids){
-			cache.getOrCreate(variable.eResource).set(variable.name, Type.INT)
+	def lastType(Pipeline pipeline) {
+		var last = pipeline
+		while (last.next !== null) {
+			last = last.next
+		}
+		
+		last.typeOfPipeline
+	}
+	
+	def dispatch Type typeOfPipeline(Filter filter) {
+		filter.inputTypeOfPipeline
+	}
+	
+	def dispatch Type typeOfPipeline(Map map) {
+		map.expression.type
+	}
+	
+	def dispatch Type typeOfPipeline(Window window) {
+		Type.DOUBLE
+	}
+	
+	def inputTypeOfPipeline(Pipeline pipeline) {
+		val precedingPipeline = pipeline.eContainer
+		switch precedingPipeline {
+			Pipeline: precedingPipeline.typeOfPipeline
+			default: Type.INT
 		}
 	}
 	
@@ -157,7 +152,10 @@ class TypeChecker {
 	}
 
 	def dispatch Type type(Reference reference) {
-		val cached = cache.get(reference.variable.name, reference.eResource, [Type.INVALID])
-		return cached
+		if (reference?.variable?.name === null) {
+			return Type.INVALID
+		}
+		
+		return reference.typeOf(this)
 	}
 }

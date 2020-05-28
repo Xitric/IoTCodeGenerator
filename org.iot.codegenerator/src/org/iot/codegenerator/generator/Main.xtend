@@ -45,7 +45,7 @@ class Main {
 			var read = 0
 			while (read === 0) {
 				read = conn.inputStream.read()
-				System.out.println(read)
+				System.out.println("Got: " + read)
 				if (read === 0) {
 					conn.outputStream.write(doGenerate(string))
 				}

@@ -39,7 +39,6 @@ import org.iot.codegenerator.codeGenerator.Negation
 import org.iot.codegenerator.codeGenerator.Not
 import org.iot.codegenerator.codeGenerator.OnbSensor
 import org.iot.codegenerator.codeGenerator.Or
-import org.iot.codegenerator.codeGenerator.Pipeline
 import org.iot.codegenerator.codeGenerator.Plus
 import org.iot.codegenerator.codeGenerator.Provider
 import org.iot.codegenerator.codeGenerator.Sensor
@@ -51,7 +50,6 @@ import org.iot.codegenerator.codeGenerator.TransformationOut
 import org.iot.codegenerator.codeGenerator.Unequal
 import org.iot.codegenerator.codeGenerator.Variable
 import org.iot.codegenerator.codeGenerator.Variables
-import org.iot.codegenerator.codeGenerator.WindowPipeline
 import org.iot.codegenerator.typing.TypeChecker
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
@@ -258,11 +256,6 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			checkNoDuplicateVariableNamesInStatement(provider.variables.ids)
 		}
 	}
-	
-	@Check
-	def validateDataOut(Variables variables){
-		variables.cacheVariables
-	} 
 
 	def checkSameTypeOfTransformationOutPipelines(List<TransformationOut> transformationOuts){
 		if (transformationOuts.size >1){
@@ -283,10 +276,12 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 			val firstPipelineType = channelOuts.get(0).pipeline.lastType
 			for(ChannelOut channelOut: channelOuts){
 				val currentPipelineType = channelOut.pipeline.lastType
-				if (firstPipelineType !== currentPipelineType){
-					error('''expected «firstPipelineType» got «currentPipelineType»''',
-						channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
-					)
+				if (! firstPipelineType.numberType || ! currentPipelineType.numberType) {
+					if (firstPipelineType !== currentPipelineType){
+						error('''expected «firstPipelineType» got «currentPipelineType»''',
+							channelOut, CodeGeneratorPackage.eINSTANCE.channelOut_Pipeline
+						)
+					}
 				}
 			}
 		}
@@ -338,8 +333,10 @@ class CodeGeneratorValidator extends AbstractCodeGeneratorValidator {
 	def checkExpression(Conditional conditional) {
 		conditional.condition.type.validateTypes(TypeChecker.Type.BOOLEAN,
 			CodeGeneratorPackage.Literals.CONDITIONAL__CONDITION)
-		conditional.incorrect.type.validateTypes(conditional.correct.type,
+		if (! conditional.correct.type.numberType || ! conditional.incorrect.type.numberType) {
+			conditional.incorrect.type.validateTypes(conditional.correct.type,
 			CodeGeneratorPackage.Literals.CONDITIONAL__INCORRECT)
+		}
 	}
 
 	@Check

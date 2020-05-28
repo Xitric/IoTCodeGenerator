@@ -1,5 +1,6 @@
 package org.iot.codegenerator.generator.python.board
 
+import com.google.inject.Inject
 import org.iot.codegenerator.codeGenerator.ChannelOut
 import org.iot.codegenerator.codeGenerator.Filter
 import org.iot.codegenerator.codeGenerator.FrequencySampler
@@ -15,13 +16,16 @@ import org.iot.codegenerator.codeGenerator.Sensor
 import org.iot.codegenerator.codeGenerator.StDev
 import org.iot.codegenerator.codeGenerator.Var
 import org.iot.codegenerator.codeGenerator.Window
+import org.iot.codegenerator.generator.python.ExpressionGenerator
 import org.iot.codegenerator.generator.python.GeneratorEnvironment
 
 import static extension org.iot.codegenerator.generator.python.GeneratorUtil.*
 import static extension org.iot.codegenerator.generator.python.ImportGenerator.*
-import static extension org.iot.codegenerator.generator.python.ExpressionGenerator.*
 
 class SensorGenerator {
+	
+	@Inject
+	extension ExpressionGenerator
 
 	def String compile(Sensor sensor) {
 		val env = new GeneratorEnvironment()
